@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, ListGroup, Tab, Nav, Alert, Modal } from 'react-bootstrap';
 import { MOCK_CARDS } from '../data/cards';
-import { getAccountByRiotId, getSummonerByPuuid, getTopMasteriesByPuuid, CHAMPION_ID_MAP, isApiKeyAvailable } from '../services/riotApi';
+import { getAccountByRiotId, getSummonerByPuuid, getTopMasteriesByPuuid, CHAMPION_ID_MAP, isApiKeyAvailable, fetchRiftboundContent, transformRiftboundContent } from '../services/riotApi';
 
 export default function DeckEditor() {
   // State
