@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, ListGroup, Tab, Nav, Alert, Modal } from 'react-bootstrap';
 import { MOCK_CARDS } from '../data/cards';
+import { getAccountByRiotId, getSummonerByPuuid, getTopMasteriesByPuuid, CHAMPION_ID_MAP, isApiKeyAvailable } from '../services/riotApi';
 
 export default function DeckEditor() {
   // State
@@ -16,6 +17,15 @@ export default function DeckEditor() {
   // Modal State for Exports
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportText, setExportText] = useState('');
+
+  // Riot API Sync State
+  const [riotId, setRiotId] = useState('');
+  const [riotPlatform, setRiotPlatform] = useState('NA1');
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncError, setSyncError] = useState(null);
+  const [summonerProfile, setSummonerProfile] = useState(null);
+  const [topMasteries, setTopMasteries] = useState([]);
+  const [recommendedChampions, setRecommendedChampions] = useState([]);
 
   // Derived state: active domains allowed based on selected legend
   const allowedDomains = useMemo(() => {
@@ -274,6 +284,57 @@ export default function DeckEditor() {
     };
   }, [selectedLegend, selectedChampion, mainDeck, runeDeck, selectedBattlefields, mainDeckCount, runeDeckCount]);
 
+  const handleRiotSync = async () => {
+    if (!riotId.trim()) {
+      setSyncError('Please enter your Riot ID (Name#Tag).');
+      return;
+    }
+    setSyncLoading(true);
+    setSyncError(null);
+    try {
+      // 1. Resolve Account PUUID
+      const account = await getAccountByRiotId(riotId, riotPlatform);
+      
+      // 2. Fetch Summoner Info
+      const summoner = await getSummonerByPuuid(account.puuid, riotPlatform);
+      
+      // 3. Fetch Masteries
+      const masteries = await getTopMasteriesByPuuid(account.puuid, riotPlatform, 5);
+      
+      setSummonerProfile({
+        name: account.gameName,
+        tag: account.tagLine,
+        level: summoner.summonerLevel,
+        iconId: summoner.profileIconId,
+      });
+
+      // Map mastery champion names
+      const mappedMasteries = masteries.map(m => ({
+        championId: m.championId,
+        points: m.championPoints,
+        level: m.championLevel,
+        name: CHAMPION_ID_MAP[m.championId] || `Unknown Champ (${m.championId})`,
+        inGameCard: CHAMPION_ID_MAP[m.championId] || null,
+      }));
+      setTopMasteries(mappedMasteries);
+
+      // Determine recommended Riftbound champions
+      const recommended = mappedMasteries
+        .filter(m => m.inGameCard)
+        .map(m => m.inGameCard);
+      setRecommendedChampions(recommended);
+    } catch (err) {
+      console.error(err);
+      let errMsg = err.message || 'An error occurred during synchronization.';
+      if (!import.meta.env.DEV) {
+        errMsg += ' (Note: Direct Riot API calls are blocked by CORS in production/browser environments. To test, please run this app locally.)';
+      }
+      setSyncError(errMsg);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   // Export Deck list
   const exportDeck = () => {
     let text = `== RIFTBOUND DECK LIST ==\n\n`;
@@ -414,9 +475,19 @@ export default function DeckEditor() {
 
                     const isLegal = isCardDomainLegal(card);
 
+                    const domainClass = card.domains && card.domains.length > 0 ? `border-${card.domains[0].toLowerCase()}` : '';
+                    let heightClass = 'height-short';
+                    if (card.type === 'Legend' || card.type === 'Champion') heightClass = 'height-tall';
+                    else if (card.type === 'Battlefield') heightClass = 'height-medium';
+
                     return (
                       <Col key={card.id}>
-                        <Card className={`h-100 card-tcg bg-dark border-secondary ${!isLegal ? 'opacity-50 border-danger-subtle' : ''}`}>
+                        <Card className={`h-100 card-tcg bg-dark ${domainClass} ${!isLegal ? 'opacity-50 border-danger-subtle' : ''}`}>
+                          {card.image && (
+                            <div className={`card-img-container ${heightClass}`}>
+                              <img src={card.image} alt={card.name} loading="lazy" />
+                            </div>
+                          )}
                           <Card.Body className="d-flex flex-column p-3">
                             <div className="d-flex justify-content-between align-items-start mb-2">
                               <Badge bg={
@@ -431,7 +502,14 @@ export default function DeckEditor() {
                               )}
                             </div>
                             
-                            <Card.Title className="fs-6 fw-bold text-light mb-1">{card.name}</Card.Title>
+                            <Card.Title className="fs-6 fw-bold text-light mb-1 d-flex align-items-center justify-content-between flex-wrap gap-1">
+                              <span>{card.name}</span>
+                              {card.type === 'Champion' && recommendedChampions.includes(card.name) && (
+                                <Badge bg="warning" text="dark" className="small border border-warning" style={{ fontSize: '0.65rem' }}>
+                                  ★ Recommended Main
+                                </Badge>
+                              )}
+                            </Card.Title>
                             <Card.Subtitle className="small text-muted mb-2">{card.type}</Card.Subtitle>
                             
                             <Card.Text className="small flex-grow-1 text-secondary-glow card-text-custom">
@@ -501,6 +579,119 @@ export default function DeckEditor() {
 
         {/* Right Side: Active Deck & Validation Checklist */}
         <Col lg={5}>
+          {/* Riot API Profile Sync Panel */}
+          <Card className="card-glass border-secondary-subtle mb-4">
+            <Card.Header className="bg-transparent border-bottom border-secondary-subtle d-flex justify-content-between align-items-center">
+              <h2 className="fs-5 text-cyan fw-bold m-0 py-1">Riot Profile Sync</h2>
+              <Badge bg={isApiKeyAvailable() ? "success" : "danger"}>
+                {isApiKeyAvailable() ? "API Key Loaded" : "No API Key"}
+              </Badge>
+            </Card.Header>
+            <Card.Body className="p-3">
+              {!isApiKeyAvailable() ? (
+                <div className="small text-muted text-center py-2">
+                  <p className="m-0">⚠️ To link your League of Legends account and receive deck suggestions based on your masteries, please add your Riot API key to <code>APIkey.txt</code> and restart the development server.</p>
+                </div>
+              ) : (
+                <>
+                  <Form onSubmit={(e) => { e.preventDefault(); handleRiotSync(); }}>
+                    <Row className="g-2 align-items-end mb-3">
+                      <Col xs={7}>
+                        <Form.Group controlId="riotIdInput">
+                          <Form.Label className="small text-muted mb-1">Riot ID (Name#Tag)</Form.Label>
+                          <Form.Control
+                            type="text"
+                            placeholder="e.g. BrandMain#NA1"
+                            value={riotId}
+                            onChange={(e) => setRiotId(e.target.value)}
+                            className="bg-dark text-light border-secondary form-control-sm"
+                            disabled={syncLoading}
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col xs={5}>
+                        <Form.Group controlId="riotPlatformSelect">
+                          <Form.Label className="small text-muted mb-1">Server Region</Form.Label>
+                          <Form.Select
+                            value={riotPlatform}
+                            onChange={(e) => setRiotPlatform(e.target.value)}
+                            className="bg-dark text-light border-secondary form-control-sm"
+                            disabled={syncLoading}
+                          >
+                            <option value="NA1">North America</option>
+                            <option value="EUW1">Europe West</option>
+                            <option value="EUN1">Europe Nordic & East</option>
+                            <option value="KR">Korea</option>
+                            <option value="OC1">Oceania</option>
+                            <option value="BR1">Brazil</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <div className="d-grid">
+                      <Button 
+                        type="submit" 
+                        variant="outline-cyan" 
+                        size="sm" 
+                        disabled={syncLoading}
+                      >
+                        {syncLoading ? 'Syncing...' : '🔄 Link Account & Sync Mastery'}
+                      </Button>
+                    </div>
+                  </Form>
+
+                  {syncError && (
+                    <Alert variant="danger" className="mt-3 p-2 small border-0 bg-danger-subtle text-danger">
+                      {syncError}
+                    </Alert>
+                  )}
+
+                  {summonerProfile && (
+                    <div className="mt-3 p-3 bg-dark rounded border border-secondary-subtle">
+                      <div className="d-flex align-items-center mb-3">
+                        <img 
+                          src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summonerProfile.iconId}.png`} 
+                          alt="Icon" 
+                          className="rounded-circle border border-warning me-3"
+                          style={{ width: '48px', height: '48px' }}
+                        />
+                        <div>
+                          <h4 className="fs-6 m-0 fw-bold text-light">{summonerProfile.name} <span className="text-muted">#{summonerProfile.tag}</span></h4>
+                          <span className="small text-gold">Level {summonerProfile.level}</span>
+                        </div>
+                      </div>
+
+                      <h5 className="fs-6 text-gold mb-2 border-bottom border-secondary-subtle pb-1">Top Champion Masteries</h5>
+                      <ListGroup variant="flush" className="bg-transparent">
+                        {topMasteries.map((m, idx) => (
+                          <ListGroup.Item key={idx} className="bg-transparent border-0 text-light p-1 d-flex justify-content-between align-items-center small">
+                            <span>
+                              <span className="text-muted me-2">{idx + 1}.</span>
+                              <strong className={m.inGameCard ? "text-cyan" : ""}>{m.name.split(',')[0]}</strong>
+                              <span className="text-muted ms-2">(Lvl {m.level})</span>
+                            </span>
+                            <span className="d-flex align-items-center gap-2">
+                              <span className="text-muted">{m.points.toLocaleString()} pts</span>
+                              {m.inGameCard && (
+                                <Badge bg="warning" text="dark" className="small">Riftbound Card!</Badge>
+                              )}
+                            </span>
+                          </ListGroup.Item>
+                        ))}
+                      </ListGroup>
+
+                      {recommendedChampions.length > 0 && (
+                        <div className="mt-3 alert alert-info p-2 small border-0 m-0 bg-info-subtle text-info">
+                          <strong>💡 Mastery Recommendations:</strong> Top masteries match <strong>{recommendedChampions.map(c => c.split(',')[0]).join(', ')}</strong> in our card pool. They have been highlighted in the browser!
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </Card.Body>
+          </Card>
+
           {/* Validation Panel */}
           <Card className="card-glass border-secondary-subtle mb-4">
             <Card.Header className="bg-transparent border-bottom border-secondary-subtle">
@@ -554,9 +745,14 @@ export default function DeckEditor() {
                 {/* Legend Row */}
                 <ListGroup.Item className="bg-transparent border-bottom border-secondary-subtle text-light py-3">
                   <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <small className="text-gold text-uppercase tracking-wider fw-bold">Legend (1)</small>
-                      <h4 className="fs-6 m-0 fw-bold">{selectedLegend ? selectedLegend.name : 'No Legend Selected'}</h4>
+                    <div className="d-flex align-items-center">
+                      {selectedLegend && selectedLegend.image && (
+                        <img src={selectedLegend.image} className="deck-list-thumbnail me-2" alt="" />
+                      )}
+                      <div>
+                        <small className="text-gold text-uppercase tracking-wider fw-bold">Legend (1)</small>
+                        <h4 className="fs-6 m-0 fw-bold">{selectedLegend ? selectedLegend.name : 'No Legend Selected'}</h4>
+                      </div>
                     </div>
                     {selectedLegend && (
                       <Button variant="outline-danger" size="sm" onClick={() => setSelectedLegend(null)}>Remove</Button>
@@ -567,14 +763,19 @@ export default function DeckEditor() {
                 {/* Champion Row */}
                 <ListGroup.Item className="bg-transparent border-bottom border-secondary-subtle text-light py-3">
                   <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <small className="text-cyan text-uppercase tracking-wider fw-bold">Champion (1)</small>
-                      <h4 className="fs-6 m-0 fw-bold">
-                        {selectedChampion ? selectedChampion.name : 'No Champion Selected'}
-                        {selectedChampion && !isCardDomainLegal(selectedChampion) && (
-                          <span className="text-danger ms-2 small">⚠️ Domain Mismatch</span>
-                        )}
-                      </h4>
+                    <div className="d-flex align-items-center">
+                      {selectedChampion && selectedChampion.image && (
+                        <img src={selectedChampion.image} className="deck-list-thumbnail me-2" alt="" />
+                      )}
+                      <div>
+                        <small className="text-cyan text-uppercase tracking-wider fw-bold">Champion (1)</small>
+                        <h4 className="fs-6 m-0 fw-bold">
+                          {selectedChampion ? selectedChampion.name : 'No Champion Selected'}
+                          {selectedChampion && !isCardDomainLegal(selectedChampion) && (
+                            <span className="text-danger ms-2 small">⚠️ Domain Mismatch</span>
+                          )}
+                        </h4>
+                      </div>
                     </div>
                     {selectedChampion && (
                       <Button variant="outline-danger" size="sm" onClick={() => setSelectedChampion(null)}>Remove</Button>
@@ -588,18 +789,17 @@ export default function DeckEditor() {
                   {selectedBattlefields.length === 0 ? (
                     <span className="text-muted small">No Battlefields selected. Add from the browser.</span>
                   ) : (
-                    <div className="d-flex flex-wrap gap-2">
+                    <div className="d-flex flex-column gap-2">
                       {selectedBattlefields.map(b => (
-                        <Badge key={b.id} bg="success" className="p-2 d-flex align-items-center gap-2">
-                          {b.name}
-                          <span 
-                            className="text-white fw-bold cursor-pointer hover-red" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => toggleBattlefield(b)}
-                          >
-                            ×
-                          </span>
-                        </Badge>
+                        <div key={b.id} className="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary">
+                          <div className="d-flex align-items-center">
+                            {b.image && (
+                              <img src={b.image} className="deck-list-thumbnail me-2" alt="" />
+                            )}
+                            <span>{b.name}</span>
+                          </div>
+                          <Button variant="outline-danger" size="sm" className="py-0 px-2" onClick={() => toggleBattlefield(b)}>×</Button>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -616,10 +816,15 @@ export default function DeckEditor() {
                         const isLegal = isCardDomainLegal(item.card);
                         return (
                           <div key={item.card.id} className="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary">
-                            <div>
+                            <div className="d-flex align-items-center">
                               <span className="fw-bold text-gold me-2">{item.count}x</span>
-                              <span className={!isLegal ? 'text-danger text-decoration-line-through' : ''}>{item.card.name}</span>
-                              <span className="text-muted small ms-2">({item.card.type})</span>
+                              {item.card.image && (
+                                <img src={item.card.image} className="deck-list-thumbnail me-2" alt="" />
+                              )}
+                              <div>
+                                <span className={!isLegal ? 'text-danger text-decoration-line-through text-muted' : ''}>{item.card.name}</span>
+                                <div className="text-muted small">({item.card.type})</div>
+                              </div>
                               {item.count > 3 && <Badge bg="danger" className="ms-2">Limit Viol.</Badge>}
                               {!isLegal && <span className="text-danger small ms-2">⚠️ Domain Mismatch</span>}
                             </div>
@@ -645,10 +850,15 @@ export default function DeckEditor() {
                         const isLegal = isCardDomainLegal(item.card);
                         return (
                           <div key={item.card.id} className="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary">
-                            <div>
+                            <div className="d-flex align-items-center">
                               <span className="fw-bold text-cyan me-2">{item.count}x</span>
-                              <span className={!isLegal ? 'text-danger text-decoration-line-through' : ''}>{item.card.name}</span>
-                              {!isLegal && <span className="text-danger small ms-2">⚠️ Domain Mismatch</span>}
+                              {item.card.image && (
+                                <img src={item.card.image} className="deck-list-thumbnail me-2" alt="" />
+                              )}
+                              <div>
+                                <span className={!isLegal ? 'text-danger text-decoration-line-through text-muted' : ''}>{item.card.name}</span>
+                                {!isLegal && <span className="text-danger small ms-2">⚠️ Domain Mismatch</span>}
+                              </div>
                             </div>
                             <div className="d-flex gap-1">
                               <Button variant="outline-danger" size="sm" className="py-0 px-2" onClick={() => removeFromRuneDeck(item.card)}>-</Button>

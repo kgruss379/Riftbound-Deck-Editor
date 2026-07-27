@@ -151,7 +151,7 @@ body {
 
 /* Card Pool and Deck Scrolls */
 .card-pool-scroll {
-  max-height: 70vh;
+  max-height: 75vh;
   overflow-y: auto;
   padding-right: 5px;
 }
@@ -180,27 +180,79 @@ body {
   background: var(--gold-secondary);
 }
 
-/* TCG Card styles */
+/* TCG Physical Card styles */
 .card-tcg {
   background: rgba(20, 26, 37, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 8px !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
 }
 
+/* Domain Highlight Borders & Shadows */
+.card-tcg.border-fire { border-color: rgba(255, 71, 71, 0.2) !important; }
+.card-tcg.border-water { border-color: rgba(51, 166, 255, 0.2) !important; }
+.card-tcg.border-earth { border-color: rgba(255, 170, 0, 0.2) !important; }
+.card-tcg.border-air { border-color: rgba(153, 51, 255, 0.2) !important; }
+
 .card-tcg:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  border-color: rgba(200, 170, 110, 0.4) !important;
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.card-tcg.border-fire:hover { border-color: var(--color-fire) !important; box-shadow: 0 0 20px rgba(255, 71, 71, 0.35), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-water:hover { border-color: var(--color-water) !important; box-shadow: 0 0 20px rgba(51, 166, 255, 0.35), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-earth:hover { border-color: var(--color-earth) !important; box-shadow: 0 0 20px rgba(255, 170, 0, 0.35), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-air:hover { border-color: var(--color-air) !important; box-shadow: 0 0 20px rgba(153, 51, 255, 0.35), 0 10px 25px rgba(0, 0, 0, 0.4); }
+
+/* Card Image Styles */
+.card-img-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: #0b0f19;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Different image heights for card types */
+.card-img-container.height-tall {
+  height: 200px;
+}
+.card-img-container.height-medium {
+  height: 120px;
+}
+.card-img-container.height-short {
+  height: 90px;
+}
+
+.card-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.card-tcg:hover .card-img-container img {
+  transform: scale(1.08);
 }
 
 .card-text-custom {
-  font-size: 0.82rem;
-  line-height: 1.35;
-  color: #a0aec0 !important;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #cbd5e0 !important;
 }
 
-/* border helper classes */
+/* Deck list details & thumbnails */
+.deck-list-thumbnail {
+  width: 44px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: #1a202c;
+}
+
+/* Border helper classes */
 .border-gold-subtle {
   border-color: rgba(200, 170, 110, 0.25) !important;
 }
