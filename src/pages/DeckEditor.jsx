@@ -27,6 +27,40 @@ export default function DeckEditor() {
   const [topMasteries, setTopMasteries] = useState([]);
   const [recommendedChampions, setRecommendedChampions] = useState([]);
 
+  // Dynamic Card Pool State
+  const [cardDatabase, setCardDatabase] = useState(MOCK_CARDS);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [loadingCardsError, setLoadingCardsError] = useState(null);
+  const [cardDatabaseSource, setCardDatabaseSource] = useState('mock');
+
+  React.useEffect(() => {
+    const loadApiCards = async () => {
+      if (!isApiKeyAvailable()) {
+        return; // Fall back to offline MOCK_CARDS
+      }
+      setLoadingCards(true);
+      setLoadingCardsError(null);
+      try {
+        const data = await fetchRiftboundContent(riotPlatform);
+        const parsed = transformRiftboundContent(data);
+        if (parsed.legends.length > 0 || parsed.champions.length > 0 || parsed.mainDeck.length > 0) {
+          setCardDatabase(parsed);
+          setCardDatabaseSource('api');
+        }
+      } catch (error) {
+        console.warn('Riot Content API fetch failed, falling back to mock database:', error);
+        let msg = 'Failed to load live cards from Riot API. Using offline mock database.';
+        if (!import.meta.env.DEV) {
+          msg += ' (Note: Direct content API fetches are blocked by CORS in production browsers.)';
+        }
+        setLoadingCardsError(msg);
+      } finally {
+        setLoadingCards(false);
+      }
+    };
+    loadApiCards();
+  }, []);
+
   // Derived state: active domains allowed based on selected legend
   const allowedDomains = useMemo(() => {
     if (!selectedLegend) return ['Fire', 'Water', 'Earth', 'Air']; // All before legend selection
@@ -163,79 +197,85 @@ export default function DeckEditor() {
 
   // Load a complete sample deck for demonstration
   const loadSampleDeck = () => {
-    // 1. Choose Steam Arcanist (Fire/Water Legend)
-    const legend = MOCK_CARDS.legends.find(l => l.id === 'l5');
+    // 1. Choose Legend (Steam Arcanist or first available)
+    const legend = cardDatabase.legends.find(l => l.name.includes('Steam') || l.id === 'l5') || cardDatabase.legends[0] || MOCK_CARDS.legends[0];
     setSelectedLegend(legend);
 
-    // 2. Choose Fizz (Water Champion)
-    const champ = MOCK_CARDS.champions.find(c => c.id === 'c5');
+    // 2. Choose Champion compatible with Legend's domains
+    const allowed = legend.domains;
+    const champ = cardDatabase.champions.find(c => c.domains.some(d => allowed.includes(d))) || cardDatabase.champions[0] || MOCK_CARDS.champions[0];
     setSelectedChampion(champ);
 
     // 3. Set up Main Deck (40 cards total)
-    // 3 x Fire Adept, 3 x Flame Burst, 3 x Ignite, 3 x Sunfire Aegis, 3 x Infernus Dragon (15 Fire cards)
-    // 3 x Tidecaller, 3 x Frostbite, 3 x Aqua Barrier, 3 x Abyssal Mask, 3 x Leviathan (15 Water cards)
-    // 2 x Statikk Shiv, 2 x Cloud Scout, 3 x Wind Wall, 3 x Zephyr Strike (10 Air cards? Wait, Steam Arcanist is Fire/Water, so Air is illegal!
-    // Let's make it 4 x some cards or fill up to 40 with Fire/Water cards only.
-    // 40 cards:
-    // Fire Adept (3), Flame Burst (3), Ignite (3), Sunfire Aegis (3), Infernus (3) -> 15
-    // Tidecaller (3), Frostbite (3), Aqua Barrier (3), Abyssal Mask (3), Leviathan (3) -> 15
-    // Flame Burst (another copies? No, max 3 copies). Let's do 8 distinct cards * 3 = 24, plus 4 cards * 3 = 12, plus 4 cards.
-    // Let's assign:
-    // m1: 3, m2: 3, m3: 3, m4: 3, m5: 2 (14 Fire)
-    // m6: 3, m7: 3, m8: 3, m9: 3, m10: 2 (14 Water)
-    // plus m1, m2, m3 are already at 3. We have m1 (3), m2 (3), m3 (3), m4 (3), m5 (3) = 15.
-    // m6 (3), m7 (3), m8 (3), m9 (3), m10 (3) = 15.
-    // That's 30 cards. We need 10 more Fire/Water cards:
-    // Let's add other combinations or allow them. Wait, let's look at cards.js.
-    // Fire cards: m1-m5. Water cards: m6-m10. Earth: m11-m15. Air: m16-m20.
-    // So for Fire/Water we only have 10 total cards. To make exactly 40, we will add 3 copies of m1-m10 (30 cards)
-    // And add 2 copies of m1, m2, etc? No, max 3 copies of any card!
-    // Ah! With 10 cards and a limit of 3 copies each, the maximum possible cards in a Fire/Water deck is 10 * 3 = 30.
-    // Let's change the sample deck to a Legend with all domains, or choose a 3-domain legend, or just select a Legend that allows 3 domains (e.g. we can load a sample deck matching a 2-domain identity but we need more cards in cards.js to reach 40. Or we can just load a sample deck of 3 domains like Water/Air/Earth, wait, or let's load a Water/Air deck:
-    // Water (m6-m10, 5 cards * 3 = 15), Air (m16-m20, 5 cards * 3 = 15). That is still 30.
-    // Wait, let's load a sample deck of 40 cards where we lift the domain check temporarily or just add some duplicates or let's create a custom load. Wait! A standard Legend has 2 domains, but to hit 40 cards with only 10 unique cards in those 2 domains, we would need 4 copies of some or more cards in cards.js. Let's just add enough copies to hit 40, or we can add 3 copies of m1-m10 (30 cards) and 2 copies of some runes? No, runes go in the Rune Deck.
-    // Let's check: to hit 40, we can just allow the sample deck to have some Earth or Air cards and explain it, or select a Legend that allows all domains for the sample deck, or simply set the sample deck to have 40 cards by adding cards across Fire, Water, and Air, using Tidal Sage (Water) and adding other cards. Actually, let's select Tidal Sage (Water) but load 30 cards, or let's add more card definitions to cards.js?
-    // Wait! Let's look at the cards.js. We have 20 cards in `mainDeck`. That means across all 4 domains, we have 20 cards * 3 copies = 60 cards max.
-    // If a Legend permits 3 domains (or we select Steam Arcanist and add some Neutral cards, or let the user choose), let's just make the sample deck use a Legend like Tidal Sage, and for the demonstration, we'll populate 40 cards including some out-of-domain cards if needed, OR we can select Steam Arcanist (Fire/Water) and fill it with Fire and Water cards, and add a few Earth cards (noting that they violate domain identity for validation demo!). That is actually extremely clever, because it shows how the validation system highlights illegal cards!
-    // Yes! Let's load 30 legal cards and 10 illegal cards (Earth/Air) to showcase the domain validation in action.
-    setMainDeck([
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm1'), count: 3 }, // Fire Adept
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm2'), count: 3 }, // Flame Burst
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm3'), count: 3 }, // Ignite
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm4'), count: 3 }, // Sunfire Aegis
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm5'), count: 3 }, // Infernus Dragon
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm6'), count: 3 }, // Tidecaller
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm7'), count: 3 }, // Frostbite
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm8'), count: 3 }, // Aqua Barrier
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm9'), count: 3 }, // Abyssal Mask
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm10'), count: 3 }, // Leviathan
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm11'), count: 3 }, // Vanguard Defender (Earth - Illegal for Fire/Water!)
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm12'), count: 3 }, // Decisive Strike (Earth - Illegal for Fire/Water!)
-      { card: MOCK_CARDS.mainDeck.find(m => m.id === 'm16'), count: 4 }  // Cloud Scout (Air - Illegal, and 4 copies to trigger count warning!)
-    ]);
+    const legalMainCards = cardDatabase.mainDeck.filter(m => m.domains.some(d => allowed.includes(d)));
+    const deck = [];
+    let total = 0;
+    
+    if (legalMainCards.length > 0) {
+      for (const card of legalMainCards) {
+        if (total >= 40) break;
+        const count = Math.min(3, 40 - total);
+        deck.push({ card, count });
+        total += count;
+      }
+    }
+    
+    if (total < 40 && cardDatabaseSource === 'mock') {
+      // Revert to original static mock values to guarantee 40 cards with violations demo
+      setMainDeck([
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm1'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm2'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm3'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm4'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm5'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm6'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm7'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm8'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm9'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm10'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm11'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm12'), count: 3 },
+        { card: cardDatabase.mainDeck.find(m => m.id === 'm16'), count: 4 }
+      ]);
+    } else {
+      setMainDeck(deck);
+    }
 
-    // 4. Rune deck: 12 runes (6 Fire, 6 Water)
-    setRuneDeck([
-      { card: MOCK_CARDS.runes.find(r => r.id === 'r1'), count: 6 },
-      { card: MOCK_CARDS.runes.find(r => r.id === 'r2'), count: 6 }
-    ]);
+    // 4. Set up Rune Deck (12 runes)
+    const legalRunes = cardDatabase.runes.filter(r => r.domains.some(d => allowed.includes(d)));
+    const runes = [];
+    let runeTotal = 0;
+    
+    if (legalRunes.length > 0) {
+      for (const rune of legalRunes) {
+        if (runeTotal >= 12) break;
+        const count = Math.min(3, 12 - runeTotal);
+        runes.push({ card: rune, count });
+        runeTotal += count;
+      }
+    }
+    
+    if (runeTotal < 12 && cardDatabaseSource === 'mock') {
+      setRuneDeck([
+        { card: cardDatabase.runes.find(r => r.id === 'r1'), count: 6 },
+        { card: cardDatabase.runes.find(r => r.id === 'r2'), count: 6 }
+      ]);
+    } else {
+      setRuneDeck(runes);
+    }
 
     // 5. Battlefields: 3 battlefields
-    setSelectedBattlefields([
-      MOCK_CARDS.battlefields[0],
-      MOCK_CARDS.battlefields[1],
-      MOCK_CARDS.battlefields[2]
-    ]);
+    setSelectedBattlefields(cardDatabase.battlefields.slice(0, 3));
   };
 
   // Filtered card pool based on search, active tab, and domain filter
   const filteredCardPool = useMemo(() => {
     let pool = [];
-    if (activePoolTab === 'legends') pool = MOCK_CARDS.legends;
-    else if (activePoolTab === 'champions') pool = MOCK_CARDS.champions;
-    else if (activePoolTab === 'runes') pool = MOCK_CARDS.runes;
-    else if (activePoolTab === 'main') pool = MOCK_CARDS.mainDeck;
-    else if (activePoolTab === 'battlefields') pool = MOCK_CARDS.battlefields;
+    if (activePoolTab === 'legends') pool = cardDatabase.legends;
+    else if (activePoolTab === 'champions') pool = cardDatabase.champions;
+    else if (activePoolTab === 'runes') pool = cardDatabase.runes;
+    else if (activePoolTab === 'main') pool = cardDatabase.mainDeck;
+    else if (activePoolTab === 'battlefields') pool = cardDatabase.battlefields;
 
     // Search query filter
     if (searchQuery.trim() !== '') {
@@ -249,7 +289,7 @@ export default function DeckEditor() {
     }
 
     return pool;
-  }, [activePoolTab, searchQuery, domainFilter]);
+  }, [activePoolTab, searchQuery, domainFilter, cardDatabase]);
 
   // Validation checks
   const validationResults = useMemo(() => {
@@ -378,8 +418,24 @@ export default function DeckEditor() {
     <Container fluid className="py-4 text-light bg-dark-custom min-vh-100">
       <Row className="mb-4 align-items-center">
         <Col md={8}>
-          <h1 className="fs-3 fw-bold text-gold m-0 text-glow">Riftbound Deck Builder</h1>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <h1 className="fs-3 fw-bold text-gold m-0 text-glow">Riftbound Deck Builder</h1>
+            {loadingCards ? (
+              <Badge bg="secondary" className="px-2 py-1 animate-pulse">
+                ⏳ Loading Cards...
+              </Badge>
+            ) : (
+              <Badge bg={cardDatabaseSource === 'api' ? "success" : "secondary"} className="px-2 py-1">
+                {cardDatabaseSource === 'api' ? "🟢 Live API Cards" : "⚪ Offline Cards"}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted m-0 small">Create, validate, and export client-side Riftbound TCG decklists</p>
+          {loadingCardsError && (
+            <Alert variant="info" className="py-1 px-3 mt-2 mb-0 border-0 bg-info-subtle text-info small d-inline-block">
+              {loadingCardsError}
+            </Alert>
+          )}
         </Col>
         <Col md={4} className="text-md-end mt-2 mt-md-0">
           <Button variant="outline-danger" size="sm" className="me-2" onClick={clearDeck}>

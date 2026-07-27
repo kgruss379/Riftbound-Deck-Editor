@@ -85,3 +85,72 @@ export const getTopMasteriesByPuuid = async (puuid, platform, count = 5) => {
   const urlPath = `/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/top?count=${count}`;
   return requestRiotApi(urlPath, platform.toLowerCase(), 'platform');
 };
+
+/**
+ * Fetches official Riftbound card database content
+ */
+export const fetchRiftboundContent = async (platform = 'na1') => {
+  const routeRegion = getRoutingRegion(platform);
+  const urlPath = '/riftbound/content/v1/contents';
+  return requestRiotApi(urlPath, routeRegion, 'content');
+};
+
+/**
+ * Maps Riot's DTO structures into flat deck editor databases
+ */
+export const transformRiftboundContent = (apiData) => {
+  const transformed = {
+    legends: [],
+    champions: [],
+    runes: [],
+    mainDeck: [],
+    battlefields: []
+  };
+
+  if (!apiData || !apiData.sets) return transformed;
+
+  apiData.sets.forEach(set => {
+    if (!set.cards) return;
+    set.cards.forEach(card => {
+      // Map faction to domains list (split by comma/slash if multi-domain)
+      const domains = [];
+      if (card.faction) {
+        domains.push(...card.faction.split(/[\/,]/).map(s => s.trim()));
+      }
+
+      // Map numeric stats from DTO
+      const cost = card.stats ? card.stats.cost : undefined;
+      const power = card.stats ? card.stats.power : undefined;
+      // health can be might (defense) or energy
+      const health = card.stats ? (card.stats.might || card.stats.energy || undefined) : undefined;
+
+      const mappedCard = {
+        id: card.id,
+        name: card.name,
+        type: card.type,
+        domains: domains,
+        cost: cost,
+        power: power,
+        health: health,
+        image: card.art ? (card.art.fullURL || card.art.thumbnailURL) : undefined,
+        text: card.description || card.flavorText || '',
+      };
+
+      const typeLower = (card.type || '').toLowerCase();
+      if (typeLower === 'legend') {
+        transformed.legends.push(mappedCard);
+      } else if (typeLower === 'champion') {
+        transformed.champions.push(mappedCard);
+      } else if (typeLower === 'rune') {
+        transformed.runes.push(mappedCard);
+      } else if (typeLower === 'battlefield') {
+        transformed.battlefields.push(mappedCard);
+      } else {
+        // Main deck includes Units, Spells, Gear, etc.
+        transformed.mainDeck.push(mappedCard);
+      }
+    });
+  });
+
+  return transformed;
+};
