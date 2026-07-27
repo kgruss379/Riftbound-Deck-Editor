@@ -6,7 +6,7 @@ import path from 'path'
 // Read Riot API Key from APIkey.txt dynamically
 let apiKey = ''
 try {
-  const filePath = path.resolve(__dirname, 'APIkey.txt')
+  const filePath = path.resolve('APIkey.txt')
   if (fs.existsSync(filePath)) {
     apiKey = fs.readFileSync(filePath, 'utf-8').trim()
   }
