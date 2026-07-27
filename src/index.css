@@ -294,3 +294,323 @@ body {
 .hover-red:hover {
   color: #ff4747 !important;
 }
+
+/* --- TCG-Arena Layout Overhaul --- */
+
+:root {
+  --color-fury: #ff4747;
+  --color-calm: #33a6ff;
+  --color-mind: #a333ff;
+  --color-body: #ffaa00;
+  --color-chaos: #e6007e;
+  --color-order: #ffd700;
+  --color-colorless: #718096;
+}
+
+/* Dynamic Domain Colors mapping */
+.bg-domain-fury { background-color: var(--color-fury) !important; }
+.bg-domain-calm { background-color: var(--color-calm) !important; }
+.bg-domain-mind { background-color: var(--color-mind) !important; }
+.bg-domain-body { background-color: var(--color-body) !important; }
+.bg-domain-chaos { background-color: var(--color-chaos) !important; }
+.bg-domain-order { background-color: var(--color-order) !important; }
+.bg-domain-colorless { background-color: var(--color-colorless) !important; }
+
+.text-domain-fury { color: var(--color-fury) !important; }
+.text-domain-calm { color: var(--color-calm) !important; }
+.text-domain-mind { color: var(--color-mind) !important; }
+.text-domain-body { color: var(--color-body) !important; }
+.text-domain-chaos { color: var(--color-chaos) !important; }
+.text-domain-order { color: var(--color-order) !important; }
+.text-domain-colorless { color: var(--color-colorless) !important; }
+
+/* Dynamic Borders */
+.border-domain-fury { border-color: rgba(255, 71, 71, 0.3) !important; }
+.border-domain-calm { border-color: rgba(51, 166, 255, 0.3) !important; }
+.border-domain-mind { border-color: rgba(163, 51, 255, 0.3) !important; }
+.border-domain-body { border-color: rgba(255, 170, 0, 0.3) !important; }
+.border-domain-chaos { border-color: rgba(230, 0, 126, 0.3) !important; }
+.border-domain-order { border-color: rgba(255, 215, 0, 0.3) !important; }
+.border-domain-colorless { border-color: rgba(113, 128, 150, 0.3) !important; }
+
+.card-tcg.border-domain-fury:hover { border-color: var(--color-fury) !important; box-shadow: 0 0 20px rgba(255, 71, 71, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-calm:hover { border-color: var(--color-calm) !important; box-shadow: 0 0 20px rgba(51, 166, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-mind:hover { border-color: var(--color-mind) !important; box-shadow: 0 0 20px rgba(163, 51, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-body:hover { border-color: var(--color-body) !important; box-shadow: 0 0 20px rgba(255, 170, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-chaos:hover { border-color: var(--color-chaos) !important; box-shadow: 0 0 20px rgba(230, 0, 126, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-order:hover { border-color: var(--color-order) !important; box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-colorless:hover { border-color: var(--color-colorless) !important; box-shadow: 0 0 20px rgba(113, 128, 150, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+
+/* Main Grid Layout */
+.deck-builder-layout {
+  display: flex;
+  min-height: calc(100vh - 56px); /* minus navbar height */
+  overflow: hidden;
+  background-color: var(--bg-darker);
+}
+
+.deck-builder-gallery {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  height: calc(100vh - 56px);
+}
+
+.deck-builder-sidebar {
+  width: 380px;
+  background: rgba(10, 12, 16, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  position: sticky;
+  top: 56px;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+/* Scroll areas */
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Mana Gem Circle Filters */
+.mana-gem-container {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mana-gem-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: radial-gradient(circle, #2a313e 0%, #151a24 100%);
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.mana-gem-btn:hover {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+  transform: translateY(-2px);
+}
+
+.mana-gem-btn.active {
+  background: radial-gradient(circle, var(--cyan-primary) 0%, var(--cyan-secondary) 100%);
+  border-color: var(--cyan-primary);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+  transform: scale(1.05);
+}
+
+/* Domain Pill Filters */
+.domain-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.domain-pill:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.domain-pill.active.active-fury { background: rgba(255, 71, 71, 0.2) !important; border-color: var(--color-fury) !important; color: var(--color-fury) !important; }
+.domain-pill.active.active-calm { background: rgba(51, 166, 255, 0.2) !important; border-color: var(--color-calm) !important; color: var(--color-calm) !important; }
+.domain-pill.active.active-mind { background: rgba(163, 51, 255, 0.2) !important; border-color: var(--color-mind) !important; color: var(--color-mind) !important; }
+.domain-pill.active.active-body { background: rgba(255, 170, 0, 0.2) !important; border-color: var(--color-body) !important; color: var(--color-body) !important; }
+.domain-pill.active.active-chaos { background: rgba(230, 0, 126, 0.2) !important; border-color: var(--color-chaos) !important; color: var(--color-chaos) !important; }
+.domain-pill.active.active-order { background: rgba(255, 215, 0, 0.2) !important; border-color: var(--color-order) !important; color: var(--color-order) !important; }
+.domain-pill.active.active-colorless { background: rgba(113, 128, 150, 0.2) !important; border-color: var(--color-colorless) !important; color: var(--color-colorless) !important; }
+
+/* Deck Strips - Hearthstone / Arena Style */
+.deck-strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #0d121c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.deck-strip:hover {
+  border-color: var(--cyan-primary);
+  transform: translateX(-2px);
+}
+
+.deck-strip-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70%;
+  height: 100%;
+  background-size: cover;
+  background-position: 50% 25%;
+  mask-image: linear-gradient(to right, transparent, #000 70%);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 70%);
+  opacity: 0.65;
+  z-index: 1;
+}
+
+.deck-strip-cost {
+  position: relative;
+  width: 32px;
+  height: 100%;
+  background: radial-gradient(circle, #2575fc 0%, #1a202c 100%);
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 2;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.deck-strip-name {
+  position: relative;
+  flex: 1;
+  padding-left: 10px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.deck-strip-count {
+  position: relative;
+  width: 36px;
+  height: 24px;
+  background-color: var(--gold-primary);
+  color: #000;
+  font-weight: bold;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  margin-right: 8px;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Elegant designated slots */
+.slot-header {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--gold-primary);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-slot, .champion-slot {
+  height: 52px;
+  background-color: rgba(200, 170, 110, 0.05);
+  border: 1px dashed rgba(200, 170, 110, 0.25);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.legend-slot:hover, .champion-slot:hover {
+  background-color: rgba(200, 170, 110, 0.1);
+  border-color: var(--gold-primary);
+}
+
+.legend-slot.filled, .champion-slot.filled {
+  border-style: solid;
+  border-color: var(--gold-primary);
+  background-color: #0d121c;
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Mana Curve Chart styling */
+.mana-curve-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 60px;
+  padding: 8px 12px;
+  background-color: #06090e;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mana-curve-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.mana-curve-bar {
+  width: 12px;
+  background: linear-gradient(180deg, var(--cyan-primary) 0%, var(--cyan-secondary) 100%);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
+}
+
+.mana-curve-label {
+  font-size: 0.65rem;
+  color: #718096;
+  margin-top: 4px;
+}
+
+/* General Layout helpers */
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.animate-pulse {
+  animation: pulse 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
