@@ -76,9 +76,9 @@ export default function Home() {
                 <i className="bi bi-shield-shaded fs-1">🛡️</i>
               </div>
               <Card.Title className="text-gold fw-bold fs-4">Official Deck Rules</Card.Title>
-              <div className="text-muted flex-grow-1">
+              <div className="text-secondary-glow flex-grow-1">
                 Construct tournament-legal decks matching all official guidelines:
-                <ul className="mt-2 text-start ps-3 small">
+                <ul className="mt-2 text-start ps-3">
                   <li><strong>Main Deck:</strong> Exactly 40 cards (Units, Spells, Gear).</li>
                   <li><strong>Rune Deck:</strong> Exactly 12 Rune cards.</li>
                   <li><strong>Legend:</strong> Exactly 1 Legend card.</li>
@@ -96,7 +96,7 @@ export default function Home() {
                 <i className="bi bi-droplet-fill fs-1">💧</i>
               </div>
               <Card.Title className="text-cyan fw-bold fs-4">Domain Identity</Card.Title>
-              <Card.Text className="text-muted flex-grow-1 small">
+              <Card.Text className="text-secondary-glow flex-grow-1">
                 Your Legend dictates your Domain colors: 
                 <strong> Fury</strong> (Red), <strong>Mind</strong> (Blue), <strong>Chaos</strong> (Purple), <strong>Order</strong> (Yellow), <strong>Calm</strong> (Green), or <strong>Body</strong> (Orange). 
                 Rules ensure your deck only contains cards matching your Legend's identity, plus <strong>Colorless</strong> neutrals.
@@ -112,7 +112,7 @@ export default function Home() {
                 <i className="bi bi-lightning-fill fs-1">⚡</i>
               </div>
               <Card.Title className="text-purple fw-bold fs-4">Offline Local Database</Card.Title>
-              <Card.Text className="text-muted flex-grow-1 small">
+              <Card.Text className="text-secondary-glow flex-grow-1">
                 This app runs entirely in your browser with 100% offline support. The complete card collection of Sets 1 to 3 (including artwork, abilities, energy costs, and statistics) is loaded locally.
               </Card.Text>
             </Card.Body>
