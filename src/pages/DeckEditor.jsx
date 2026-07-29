@@ -557,62 +557,32 @@ export default function DeckEditor() {
                 return (
                   <Col key={`${card.id}-${index}`}>
                     <Card 
-                      className={`card-tcg h-100 cursor-pointer border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''}`}
+                      className={`card-tcg cursor-pointer border border-2 border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''}`}
                       onClick={() => !isInvalid && handleCardClick(card)}
                       style={isInvalid ? { cursor: 'not-allowed' } : {}}
                     >
-                      <div className="card-img-container height-tall">
-                        {card.image ? (
-                          <img src={card.image} alt={card.name} loading="lazy" />
-                        ) : (
-                          <div className="d-flex h-100 align-items-center justify-content-center text-muted">
-                            No Portrait
-                          </div>
-                        )}
-                        
-                        {/* Cost Gem overlay */}
-                        {typeof card.cost === 'number' && (
-                          <div className="position-absolute top-0 start-0 m-2 bg-dark rounded-circle border border-gold text-gold font-bold d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', fontSize: '0.9rem', zIndex: 3 }}>
-                            {card.cost}
-                          </div>
-                        )}
-                        
-                        {/* Faction icon indicator */}
-                        <div className="position-absolute top-0 end-0 m-2">
-                          {card.domains.map(d => (
-                            <Badge key={d} className={`bg-domain-${d.toLowerCase()} me-1 text-dark`}>
-                              {d}
-                            </Badge>
-                          ))}
-                        </div>
+                      {card.image ? (
+                        <Card.Img 
+                          variant="top" 
+                          src={card.image} 
+                          alt={card.name} 
+                          loading="lazy" 
+                          className="w-100 h-100 object-fit-contain"
+                        />
+                      ) : (
+                        <Card.Body className="p-3 d-flex flex-column justify-content-center align-items-center h-100 bg-dark text-center">
+                          <Card.Title className="fs-6 fw-bold mb-1 text-white">{card.name}</Card.Title>
+                          <span className="badge bg-secondary text-xs mb-2">{card.type}</span>
+                          <Card.Text className="card-text-custom text-muted mb-0">{card.text}</Card.Text>
+                        </Card.Body>
+                      )}
 
-                        {/* Recommendation badge */}
-                        {isRecommended && (
-                          <div className="position-absolute bottom-0 start-0 w-100 bg-gold text-dark py-1 text-center font-bold text-xs" style={{ zIndex: 3, letterSpacing: '1px', opacity: 0.95 }}>
-                            ★ Recommended Main
-                          </div>
-                        )}
-                      </div>
-                      
-                      <Card.Body className="p-3 d-flex flex-column justify-content-between">
-                        <div>
-                          <div className="d-flex justify-content-between align-items-start mb-1">
-                            <Card.Title className="fs-6 fw-bold m-0 text-white">{card.name}</Card.Title>
-                            <span className="text-xs text-muted font-bold text-uppercase">{card.rarity}</span>
-                          </div>
-                          
-                          <div className="mb-2">
-                            <span className="badge bg-secondary text-xs">{card.type}</span>
-                            {card.might && (
-                              <span className="badge bg-danger text-xs ms-1">⚔️ {card.might} Might</span>
-                            )}
-                          </div>
-                          
-                          <Card.Text className="card-text-custom text-muted mb-0">
-                            {card.text}
-                          </Card.Text>
+                      {/* Recommendation indicator */}
+                      {isRecommended && (
+                        <div className="position-absolute bottom-0 start-0 w-100 bg-gold text-dark py-1 text-center font-bold text-xxs" style={{ letterSpacing: '1px', opacity: 0.9, zIndex: 3 }}>
+                          ★ RECOMMENDED
                         </div>
-                      </Card.Body>
+                      )}
                     </Card>
                   </Col>
                 );
