@@ -122,6 +122,15 @@ export default function DeckEditor() {
         return [...prev, card];
       });
     } else if (typeLower === 'rune') {
+      if (!selectedLegend) {
+        alert('Please select a Legend first before adding Runes.');
+        return;
+      }
+      const matchesLegend = card.domains.some(d => selectedLegend.domains.includes(d));
+      if (!matchesLegend) {
+        alert(`Cannot add "${card.name}". Runes must match your Legend's domains (${selectedLegend.domains.join('/')}).`);
+        return;
+      }
       setRuneDeck(prev => {
         const existing = prev.find(item => item.card.id === card.id);
         const currentTotal = prev.reduce((sum, item) => sum + item.count, 0);
@@ -136,6 +145,15 @@ export default function DeckEditor() {
       });
     } else {
       // Main Deck cards: Unit, Spell, Gear
+      if (!selectedLegend) {
+        alert('Please select a Legend first before adding cards to the Main Deck.');
+        return;
+      }
+      const matchesLegend = card.domains.some(d => allowedDomains.includes(d));
+      if (!matchesLegend) {
+        alert(`Cannot add "${card.name}". Cards must match your Legend's domains (${selectedLegend.domains.join('/')}).`);
+        return;
+      }
       setMainDeck(prev => {
         const existing = prev.find(item => item.card.id === card.id);
         const currentTotal = prev.reduce((sum, item) => sum + item.count, 0);
@@ -507,11 +525,18 @@ export default function DeckEditor() {
                   (card.tags && card.tags.some(tag => tag.toLowerCase() === rec.name.toLowerCase()))
                 );
 
+                // Grey out cards that don't match the selected Legend's allowed domains (only applies to runes and main deck cards)
+                const isInvalid = selectedLegend && 
+                                  card.type !== 'Legend' && 
+                                  card.type !== 'Battlefield' && 
+                                  !card.domains.some(d => allowedDomains.includes(d));
+
                 return (
                   <Col key={card.id}>
                     <Card 
-                      className={`card-tcg h-100 cursor-pointer border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''}`}
-                      onClick={() => handleCardClick(card)}
+                      className={`card-tcg h-100 cursor-pointer border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''}`}
+                      onClick={() => !isInvalid && handleCardClick(card)}
+                      style={isInvalid ? { cursor: 'not-allowed' } : {}}
                     >
                       <div className="card-img-container height-tall">
                         {card.image ? (
