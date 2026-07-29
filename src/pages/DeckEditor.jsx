@@ -442,20 +442,32 @@ export default function DeckEditor() {
 
               {/* Card Type Filter Tabs */}
               <Col lg={8} className="d-flex justify-content-lg-end">
-                <Nav variant="pills" activeKey={activePoolTab} onSelect={(key) => setActivePoolTab(key)} className="gap-1">
-                  <Nav.Item>
-                    <Nav.Link eventKey="legends" className="nav-tab-custom py-1 px-3 fs-7">Legends</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="main" className="nav-tab-custom py-1 px-3 fs-7">Main Deck</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="runes" className="nav-tab-custom py-1 px-3 fs-7">Runes</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="battlefields" className="nav-tab-custom py-1 px-3 fs-7">Battlefields</Nav.Link>
-                  </Nav.Item>
-                </Nav>
+                <div className="d-flex gap-2">
+                  <div 
+                    className={`nav-tab-custom py-1 px-3 fs-7 cursor-pointer transition-all ${activePoolTab === 'legends' ? 'active' : ''}`}
+                    onClick={() => setActivePoolTab('legends')}
+                  >
+                    Legends
+                  </div>
+                  <div 
+                    className={`nav-tab-custom py-1 px-3 fs-7 cursor-pointer transition-all ${activePoolTab === 'main' ? 'active' : ''}`}
+                    onClick={() => setActivePoolTab('main')}
+                  >
+                    Main Deck
+                  </div>
+                  <div 
+                    className={`nav-tab-custom py-1 px-3 fs-7 cursor-pointer transition-all ${activePoolTab === 'runes' ? 'active' : ''}`}
+                    onClick={() => setActivePoolTab('runes')}
+                  >
+                    Runes
+                  </div>
+                  <div 
+                    className={`nav-tab-custom py-1 px-3 fs-7 cursor-pointer transition-all ${activePoolTab === 'battlefields' ? 'active' : ''}`}
+                    onClick={() => setActivePoolTab('battlefields')}
+                  >
+                    Battlefields
+                  </div>
+                </div>
               </Col>
             </Row>
 
