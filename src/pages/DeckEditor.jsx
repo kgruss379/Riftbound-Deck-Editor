@@ -420,7 +420,7 @@ export default function DeckEditor() {
                   📚 Offline DB (Sets 1-3)
                 </Badge>
               </div>
-              <p className="text-muted m-0 text-xs">Browse the card collection and click cards to add them to your deck</p>
+              <p className="text-secondary-glow m-0 text-xs">Browse the card collection and click cards to add them to your deck</p>
             </Col>
             
             <Col md={5} className="text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end">
@@ -606,7 +606,7 @@ export default function DeckEditor() {
           
           <div className="p-3 border-bottom border-secondary" style={{ backgroundColor: 'rgba(5, 6, 8, 0.5)' }}>
             <h2 className="fs-5 fw-bold m-0 text-gold text-glow">Active Deck</h2>
-            <div className="d-flex justify-content-between text-muted text-xs mt-1">
+            <div className="d-flex justify-content-between text-secondary-glow text-xs mt-1">
               <span>Main: {mainDeckTotal}/40</span>
               <span>Runes: {runeDeckTotal}/12</span>
               <span>Battlefields: {selectedBattlefields.length}/3</span>

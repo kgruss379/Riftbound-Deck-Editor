@@ -94,6 +94,10 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .slot-header, .card-title, .hero-title {
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.05);
 }
 
+.text-muted {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
 /* Headers */
 .header-glass {
   background: rgba(5, 6, 8, 0.85) !important;
