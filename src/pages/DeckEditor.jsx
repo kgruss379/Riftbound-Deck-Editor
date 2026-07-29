@@ -554,10 +554,12 @@ export default function DeckEditor() {
                                   card.type !== 'Battlefield' && 
                                   !card.domains.some(d => allowedDomains.includes(d));
 
+                const isBattlefield = card.type === 'Battlefield';
+
                 return (
                   <Col key={`${card.id}-${index}`}>
                     <Card 
-                      className={`card-tcg cursor-pointer border border-2 border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''}`}
+                      className={`card-tcg cursor-pointer border border-2 border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''} ${isBattlefield ? 'card-horizontal' : ''}`}
                       onClick={() => !isInvalid && handleCardClick(card)}
                       style={isInvalid ? { cursor: 'not-allowed' } : {}}
                     >

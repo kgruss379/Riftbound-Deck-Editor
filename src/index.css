@@ -181,7 +181,6 @@ body {
 }
 
 /* TCG Physical Card styles */
-/* TCG Physical Card styles */
 .card-tcg {
   background: rgba(20, 26, 37, 0.95) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
@@ -190,6 +189,10 @@ body {
   overflow: hidden;
   position: relative;
   aspect-ratio: 744 / 1039;
+}
+
+.card-tcg.card-horizontal {
+  aspect-ratio: 1039 / 744 !important;
 }
 
 .card-tcg:hover {
