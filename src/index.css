@@ -298,12 +298,12 @@ body {
 /* --- TCG-Arena Layout Overhaul --- */
 
 :root {
-  --color-fury: #ff4747;
-  --color-calm: #33a6ff;
-  --color-mind: #a333ff;
-  --color-body: #ffaa00;
-  --color-chaos: #e6007e;
-  --color-order: #ffd700;
+  --color-fury: #ff4747; /* Fury-red */
+  --color-mind: #33a6ff; /* Mind-blue */
+  --color-chaos: #a333ff; /* Chaos-purple */
+  --color-order: #ffd700; /* Order-yellow */
+  --color-calm: #2ecc71; /* Calm-green */
+  --color-body: #ffaa00; /* Body-orange */
   --color-colorless: #718096;
 }
 
@@ -326,18 +326,18 @@ body {
 
 /* Dynamic Borders */
 .border-domain-fury { border-color: rgba(255, 71, 71, 0.3) !important; }
-.border-domain-calm { border-color: rgba(51, 166, 255, 0.3) !important; }
-.border-domain-mind { border-color: rgba(163, 51, 255, 0.3) !important; }
+.border-domain-calm { border-color: rgba(46, 204, 113, 0.3) !important; }
+.border-domain-mind { border-color: rgba(51, 166, 255, 0.3) !important; }
 .border-domain-body { border-color: rgba(255, 170, 0, 0.3) !important; }
-.border-domain-chaos { border-color: rgba(230, 0, 126, 0.3) !important; }
+.border-domain-chaos { border-color: rgba(163, 51, 255, 0.3) !important; }
 .border-domain-order { border-color: rgba(255, 215, 0, 0.3) !important; }
 .border-domain-colorless { border-color: rgba(113, 128, 150, 0.3) !important; }
 
 .card-tcg.border-domain-fury:hover { border-color: var(--color-fury) !important; box-shadow: 0 0 20px rgba(255, 71, 71, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
-.card-tcg.border-domain-calm:hover { border-color: var(--color-calm) !important; box-shadow: 0 0 20px rgba(51, 166, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
-.card-tcg.border-domain-mind:hover { border-color: var(--color-mind) !important; box-shadow: 0 0 20px rgba(163, 51, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-calm:hover { border-color: var(--color-calm) !important; box-shadow: 0 0 20px rgba(46, 204, 113, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-mind:hover { border-color: var(--color-mind) !important; box-shadow: 0 0 20px rgba(51, 166, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
 .card-tcg.border-domain-body:hover { border-color: var(--color-body) !important; box-shadow: 0 0 20px rgba(255, 170, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
-.card-tcg.border-domain-chaos:hover { border-color: var(--color-chaos) !important; box-shadow: 0 0 20px rgba(230, 0, 126, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
+.card-tcg.border-domain-chaos:hover { border-color: var(--color-chaos) !important; box-shadow: 0 0 20px rgba(163, 51, 255, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
 .card-tcg.border-domain-order:hover { border-color: var(--color-order) !important; box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
 .card-tcg.border-domain-colorless:hover { border-color: var(--color-colorless) !important; box-shadow: 0 0 20px rgba(113, 128, 150, 0.25), 0 10px 25px rgba(0, 0, 0, 0.4); }
 
@@ -436,10 +436,10 @@ body {
 }
 
 .domain-pill.active.active-fury { background: rgba(255, 71, 71, 0.2) !important; border-color: var(--color-fury) !important; color: var(--color-fury) !important; }
-.domain-pill.active.active-calm { background: rgba(51, 166, 255, 0.2) !important; border-color: var(--color-calm) !important; color: var(--color-calm) !important; }
-.domain-pill.active.active-mind { background: rgba(163, 51, 255, 0.2) !important; border-color: var(--color-mind) !important; color: var(--color-mind) !important; }
+.domain-pill.active.active-calm { background: rgba(46, 204, 113, 0.2) !important; border-color: var(--color-calm) !important; color: var(--color-calm) !important; }
+.domain-pill.active.active-mind { background: rgba(51, 166, 255, 0.2) !important; border-color: var(--color-mind) !important; color: var(--color-mind) !important; }
 .domain-pill.active.active-body { background: rgba(255, 170, 0, 0.2) !important; border-color: var(--color-body) !important; color: var(--color-body) !important; }
-.domain-pill.active.active-chaos { background: rgba(230, 0, 126, 0.2) !important; border-color: var(--color-chaos) !important; color: var(--color-chaos) !important; }
+.domain-pill.active.active-chaos { background: rgba(163, 51, 255, 0.2) !important; border-color: var(--color-chaos) !important; color: var(--color-chaos) !important; }
 .domain-pill.active.active-order { background: rgba(255, 215, 0, 0.2) !important; border-color: var(--color-order) !important; color: var(--color-order) !important; }
 .domain-pill.active.active-colorless { background: rgba(113, 128, 150, 0.2) !important; border-color: var(--color-colorless) !important; color: var(--color-colorless) !important; }
 
