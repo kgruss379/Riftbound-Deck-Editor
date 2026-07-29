@@ -537,7 +537,7 @@ export default function DeckEditor() {
             </div>
           ) : (
             <Row className="row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 card-pool-scroll">
-              {filteredCardPool.map(card => {
+              {filteredCardPool.map((card, index) => {
                 const domColor = getDomainColorClass(card.domains);
                 const isSelectedInDeck = (card.type === 'Legend' && selectedLegend?.id === card.id) ||
                                          (card.type === 'Battlefield' && selectedBattlefields.some(b => b.id === card.id));
@@ -555,7 +555,7 @@ export default function DeckEditor() {
                                   !card.domains.some(d => allowedDomains.includes(d));
 
                 return (
-                  <Col key={card.id}>
+                  <Col key={`${card.id}-${index}`}>
                     <Card 
                       className={`card-tcg h-100 cursor-pointer border-domain-${domColor} ${isSelectedInDeck ? 'border-glow' : ''} ${isInvalid ? 'opacity-50' : ''}`}
                       onClick={() => !isInvalid && handleCardClick(card)}
@@ -657,9 +657,9 @@ export default function DeckEditor() {
             <div className="slot-header">🏔️ Battlefields (Max 3)</div>
             {selectedBattlefields.length > 0 ? (
               <div className="mb-3">
-                {selectedBattlefields.map(b => (
+                {selectedBattlefields.map((b, index) => (
                   <div 
-                    key={b.id} 
+                    key={`${b.id}-${index}`} 
                     className="deck-strip filled mb-1" 
                     onClick={() => handleCardClick(b)}
                   >
@@ -687,9 +687,9 @@ export default function DeckEditor() {
             </div>
             {runeDeck.length > 0 ? (
               <div className="mb-3">
-                {runeDeck.map(item => (
+                {runeDeck.map((item, index) => (
                   <div 
-                    key={item.card.id} 
+                    key={`${item.card.id}-${index}`} 
                     className="deck-strip" 
                     onClick={() => removeCardCount(item.card)}
                   >
@@ -712,11 +712,11 @@ export default function DeckEditor() {
             </div>
             {mainDeck.length > 0 ? (
               <div className="mb-3">
-                {mainDeck.map(item => {
+                {mainDeck.map((item, index) => {
                   const domColor = getDomainColorClass(item.card.domains);
                   return (
                     <div 
-                      key={item.card.id} 
+                      key={`${item.card.id}-${index}`} 
                       className="deck-strip" 
                       onClick={() => removeCardCount(item.card)}
                     >
