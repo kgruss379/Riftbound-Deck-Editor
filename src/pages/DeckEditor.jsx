@@ -31,13 +31,21 @@ export default function DeckEditor() {
   const [summonerProfile, setSummonerProfile] = useState(null);
   const [recommendedChampions, setRecommendedChampions] = useState([]);
 
-  // Sync search parameters to searchQuery state when query param changes
+  // Sync search parameters to searchQuery state and select Legend from URL parameters
   useEffect(() => {
     const q = searchParams.get('q');
     if (q !== null) {
       setSearchQuery(q);
     }
-  }, [searchParams]);
+    
+    const legendId = searchParams.get('legend');
+    if (legendId) {
+      const found = cardDatabase.legends.find(l => l.id === legendId);
+      if (found) {
+        setSelectedLegend(found);
+      }
+    }
+  }, [searchParams, cardDatabase]);
 
   // Derived state: active domains allowed based on selected legend
   const allowedDomains = useMemo(() => {

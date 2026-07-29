@@ -98,7 +98,7 @@ export default function Home() {
               <Card.Title className="text-cyan fw-bold fs-4">Domain Identity</Card.Title>
               <Card.Text className="text-muted flex-grow-1 small">
                 Your Legend dictates your Domain colors: 
-                <strong> Fury</strong> (Red), <strong>Calm</strong> (Blue), <strong>Mind</strong> (Purple), <strong>Body</strong> (Orange), <strong>Chaos</strong> (Magenta), or <strong>Order</strong> (Gold). 
+                <strong> Fury</strong> (Red), <strong>Mind</strong> (Blue), <strong>Chaos</strong> (Purple), <strong>Order</strong> (Yellow), <strong>Calm</strong> (Green), or <strong>Body</strong> (Orange). 
                 Rules ensure your deck only contains cards matching your Legend's identity, plus <strong>Colorless</strong> neutrals.
               </Card.Text>
             </Card.Body>
@@ -120,16 +120,70 @@ export default function Home() {
         </Col>
       </Row>
 
-      <Row className="mt-5 text-center">
-        <Col>
-          <div className="p-4 rounded card-glass border-secondary-subtle">
-            <h3 className="fs-5 text-light text-uppercase mb-3">Getting Started Guide</h3>
-            <p className="text-muted mb-0 small">
-              Use the card finder search bar above to look up specific cards, or click the **Launch Deck Editor** button to build your strategy. You can select your Legend, construct your main and rune decks, review real-time validation checks, and export your list!
-            </p>
-          </div>
-        </Col>
-      </Row>
+      {/* Featured Legends Quick Start Portal */}
+      <div className="mt-5 pt-4 text-center">
+        <h3 className="fs-4 text-glow text-gold text-uppercase mb-4">Choose a Featured Legend</h3>
+        <Row className="row-cols-1 row-cols-md-3 g-4 justify-content-center">
+          {[
+            {
+              id: 'ogn-247',
+              name: "Kai'Sa",
+              title: 'Daughter of the Void',
+              domains: ['Fury', 'Mind'],
+              image: 'https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/a576472c7bb00f475882ac814e1d8f9be233b402-744x1040.png'
+            },
+            {
+              id: 'ogn-251',
+              name: 'Jinx',
+              title: 'Loose Cannon',
+              domains: ['Fury', 'Chaos'],
+              image: 'https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/f57c14381b126e9f5a7b5bc4913151cb24c14fc3-744x1039.png'
+            },
+            {
+              id: 'ogn-259',
+              name: 'Yasuo',
+              title: 'Unforgiven',
+              domains: ['Calm', 'Chaos'],
+              image: 'https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/68e4d3230b785738ae9d86f780f7f5607ef11807-744x1040.png'
+            }
+          ].map(leg => (
+            <Col key={leg.id}>
+              <Card className="card-glass border-secondary-subtle h-100 overflow-hidden text-start hover-zoom-card">
+                <div style={{ position: 'relative', height: '260px', overflow: 'hidden', backgroundColor: '#090d16' }}>
+                  <img 
+                    src={leg.image} 
+                    alt={leg.title} 
+                    className="w-100 h-100 object-fit-cover card-zoom-img"
+                    style={{ transition: 'transform 0.4s ease' }}
+                  />
+                  <div className="position-absolute bottom-0 start-0 w-100 p-3" style={{ background: 'linear-gradient(to top, rgba(5,6,8,0.9), transparent)', zIndex: 2 }}>
+                    <h4 className="fs-5 fw-bold text-white mb-0">{leg.name}</h4>
+                    <span className="text-muted text-xs font-semibold">{leg.title}</span>
+                  </div>
+                  <div className="position-absolute top-0 end-0 m-2" style={{ zIndex: 3 }}>
+                    {leg.domains.map(d => (
+                      <span key={d} className={`badge bg-domain-${d.toLowerCase()} text-dark me-1`}>
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <Card.Body className="p-3 d-flex flex-column justify-content-between" style={{ backgroundColor: 'rgba(10, 14, 22, 0.4)' }}>
+                  <Button 
+                    as={Link} 
+                    to={`/editor?legend=${leg.id}`} 
+                    variant="outline-cyan" 
+                    size="sm" 
+                    className="w-100 fw-bold text-uppercase mt-2"
+                  >
+                    Build with {leg.name}
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </div>
     </Container>
   );
 }

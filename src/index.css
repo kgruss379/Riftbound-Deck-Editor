@@ -606,3 +606,18 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .slot-header, .card-title, .hero-title {
   100% { opacity: 0.6; }
 }
 
+/* Home Page Card Zoom Effect */
+.hover-zoom-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease !important;
+}
+
+.hover-zoom-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  border-color: var(--cyan-primary) !important;
+}
+
+.hover-zoom-card:hover .card-zoom-img {
+  transform: scale(1.06);
+}
+
