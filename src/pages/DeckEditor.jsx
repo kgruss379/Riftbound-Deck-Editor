@@ -239,11 +239,22 @@ export default function DeckEditor() {
 
   // Filtered card pool based on search, cost, active tab, and domain filter
   const filteredCardPool = useMemo(() => {
+    console.log('--- FILTERING CARD POOL ---');
+    console.log('activePoolTab:', activePoolTab);
+    console.log('cardDatabase keys:', Object.keys(cardDatabase || {}));
+    console.log('cardDatabase.legends length:', cardDatabase?.legends?.length);
+    console.log('cardDatabase.mainDeck length:', cardDatabase?.mainDeck?.length);
+    
     let pool = [];
     if (activePoolTab === 'legends') pool = cardDatabase.legends;
     else if (activePoolTab === 'runes') pool = cardDatabase.runes;
     else if (activePoolTab === 'main') pool = cardDatabase.mainDeck;
     else if (activePoolTab === 'battlefields') pool = cardDatabase.battlefields;
+
+    console.log('Selected pool size before filters:', pool?.length);
+    if (pool && pool.length > 0) {
+      console.log('Sample types in selected pool:', Array.from(new Set(pool.map(c => c.type))));
+    }
 
     // Search query filter
     if (searchQuery.trim() !== '') {
