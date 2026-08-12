@@ -392,6 +392,14 @@ export default function DeckEditor() {
     triggerToast(`Successfully imported ${addedCount} card entries into editor!`, 'success');
   };
 
+  // Helper to resolve card energy cost (defaults to 0 if undefined for spells/gear)
+  const getCardCost = (card) => {
+    if (!card) return 0;
+    if (typeof card.cost === 'number') return card.cost;
+    if (typeof card.energy === 'number') return card.energy;
+    return 0;
+  };
+
   // Filtered card pool based on search, cost, active tab, sub-type, rarity, and domain filter
   const filteredCardPool = useMemo(() => {
     let pool = [];
@@ -428,9 +436,9 @@ export default function DeckEditor() {
     // Cost filter
     if (activeCostFilter !== null) {
       pool = pool.filter(card => {
-        if (typeof card.cost !== 'number') return false;
-        if (activeCostFilter === 7) return card.cost >= 7;
-        return card.cost === activeCostFilter;
+        const cost = getCardCost(card);
+        if (activeCostFilter === 7) return cost >= 7;
+        return cost === activeCostFilter;
       });
     }
 
@@ -455,10 +463,9 @@ export default function DeckEditor() {
       else if (typeLower === 'spell') spells += item.count;
       else if (typeLower === 'gear') gear += item.count;
 
-      if (typeof item.card.cost === 'number') {
-        totalCost += (item.card.cost * item.count);
-        countCostCards += item.count;
-      }
+      const cost = getCardCost(item.card);
+      totalCost += (cost * item.count);
+      countCostCards += item.count;
     });
 
     const avgCost = countCostCards > 0 ? (totalCost / countCostCards).toFixed(1) : '0.0';
@@ -480,11 +487,9 @@ export default function DeckEditor() {
   const manaCurveData = useMemo(() => {
     const curve = Array(8).fill(0); // index 0-7 represents cost 0-7+
     mainDeck.forEach(item => {
-      const cost = item.card.cost;
-      if (typeof cost === 'number') {
-        const index = Math.min(cost, 7);
-        curve[index] += item.count;
-      }
+      const cost = getCardCost(item.card);
+      const index = Math.min(cost, 7);
+      curve[index] += item.count;
     });
     return curve;
   }, [mainDeck]);
@@ -1009,7 +1014,7 @@ export default function DeckEditor() {
                     >
                       <div className="deck-strip-art" style={{ backgroundImage: `url(${item.card.image})` }} />
                       <div className={`deck-strip-cost bg-domain-${domColor}`}>
-                        {item.card.cost}
+                        {getCardCost(item.card)}
                       </div>
                       <div className="deck-strip-name">{item.card.name}</div>
                       <div className="deck-strip-count">x{item.count}</div>
@@ -1340,14 +1345,12 @@ export default function DeckEditor() {
                   </div>
 
                   <Row className="g-2 mb-3">
-                    {typeof inspectedCard.cost === 'number' && (
-                      <Col xs={4}>
-                        <div className="p-2 rounded bg-darker border border-secondary text-center">
-                          <span className="text-xxs text-muted d-block uppercase font-bold">Energy Cost</span>
-                          <span className="fs-5 fw-bold text-gold">{inspectedCard.cost}</span>
-                        </div>
-                      </Col>
-                    )}
+                    <Col xs={4}>
+                      <div className="p-2 rounded bg-darker border border-secondary text-center">
+                        <span className="text-xxs text-muted d-block uppercase font-bold">Energy Cost</span>
+                        <span className="fs-5 fw-bold text-gold">{getCardCost(inspectedCard)}</span>
+                      </div>
+                    </Col>
                     {inspectedCard.might && (
                       <Col xs={4}>
                         <div className="p-2 rounded bg-darker border border-secondary text-center">
