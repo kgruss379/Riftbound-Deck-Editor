@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, ListGroup, Tab, Nav, Alert, Modal, InputGroup } from 'react-bootstrap';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { CARDS_DATABASE } from '../data/cards';
 import { getAccountByRiotId, getSummonerByPuuid, getTopMasteriesByPuuid, CHAMPION_ID_MAP, isApiKeyAvailable } from '../services/riotApi';
 
 export default function DeckEditor() {
+  const navigate = useNavigate();
+  const outletContext = useOutletContext();
   const [searchParams] = useSearchParams();
   const searchParamQuery = searchParams.get('q') || '';
 
@@ -23,6 +25,13 @@ export default function DeckEditor() {
   const [activePoolTab, setActivePoolTab] = useState('legends');
   const [activeCostFilter, setActiveCostFilter] = useState(null); // null or number (0-7)
 
+  // Publish / Share to Community Modal States
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishTitle, setPublishTitle] = useState('');
+  const [publishDesc, setPublishDesc] = useState('');
+  const [publishVersionName, setPublishVersionName] = useState('v1');
+  const [publishSuccessMsg, setPublishSuccessMsg] = useState('');
+
   // Riot API Sync State
   const [riotId, setRiotId] = useState('');
   const [riotPlatform, setRiotPlatform] = useState('NA1');
@@ -30,6 +39,45 @@ export default function DeckEditor() {
   const [syncError, setSyncError] = useState(null);
   const [summonerProfile, setSummonerProfile] = useState(null);
   const [recommendedChampions, setRecommendedChampions] = useState([]);
+
+  // Check for imported community deck payload on mount
+  useEffect(() => {
+    const rawImport = localStorage.getItem('riftbound_import_deck');
+    if (rawImport) {
+      try {
+        const parsed = JSON.parse(rawImport);
+        if (parsed && parsed.deck) {
+          const leg = CARDS_DATABASE.legends.find(l => l.id === parsed.deck.legendId);
+          if (leg) setSelectedLegend(leg);
+
+          const bfs = (parsed.deck.battlefieldIds || []).map(bId => 
+            CARDS_DATABASE.battlefields.find(b => b.id === bId)
+          ).filter(Boolean);
+          setSelectedBattlefields(bfs);
+
+          const rDeck = (parsed.deck.runeDeck || []).map(item => ({
+            card: CARDS_DATABASE.runes.find(r => r.id === item.cardId),
+            count: item.count
+          })).filter(item => item.card);
+          setRuneDeck(rDeck);
+
+          const mDeck = (parsed.deck.mainDeck || []).map(item => ({
+            card: CARDS_DATABASE.mainDeck.find(m => m.id === item.cardId),
+            count: item.count
+          })).filter(item => item.card);
+          setMainDeck(mDeck);
+
+          if (parsed.title) {
+            setPublishTitle(parsed.title);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse imported deck", e);
+      } finally {
+        localStorage.removeItem('riftbound_import_deck');
+      }
+    }
+  }, []);
 
   // Sync search parameters to searchQuery state and select Legend from URL parameters
   useEffect(() => {
@@ -406,6 +454,61 @@ export default function DeckEditor() {
     return domains[0].toLowerCase(); // e.g. fury, calm, mind, body, chaos, order, colorless
   };
 
+  // Publish / Share Deck to Community (with auto-versioning)
+  const handlePublishDeck = (e) => {
+    e.preventDefault();
+    if (!selectedLegend || !publishTitle.trim()) return;
+
+    const author = outletContext?.username || localStorage.getItem('riftbound_username') || 'Guest';
+    const rawDecks = localStorage.getItem('riftbound_community_decks');
+    let communityDecks = rawDecks ? JSON.parse(rawDecks) : [];
+
+    const deckSnapshot = {
+      legendId: selectedLegend.id,
+      battlefieldIds: selectedBattlefields.map(b => b.id),
+      runeDeck: runeDeck.map(r => ({ cardId: r.card.id, count: r.count })),
+      mainDeck: mainDeck.map(m => ({ cardId: m.card.id, count: m.count }))
+    };
+
+    // Find existing deck by this author with matching title
+    const existingIdx = communityDecks.findIndex(
+      d => d.author.toLowerCase() === author.toLowerCase() && d.title.toLowerCase() === publishTitle.trim().toLowerCase()
+    );
+
+    const versionObj = {
+      versionName: publishVersionName.trim() || `v${existingIdx >= 0 ? communityDecks[existingIdx].versions.length + 1 : 1}`,
+      changeLog: publishDesc.trim() || 'Updated deck build.',
+      timestamp: new Date().toISOString(),
+      deck: deckSnapshot
+    };
+
+    if (existingIdx >= 0) {
+      // Append version to existing post
+      communityDecks[existingIdx].description = publishDesc.trim() || communityDecks[existingIdx].description;
+      communityDecks[existingIdx].versions.unshift(versionObj); // latest version first
+    } else {
+      // Create new deck post
+      const newPost = {
+        id: 'deck-' + Date.now(),
+        title: publishTitle.trim(),
+        description: publishDesc.trim(),
+        author: author,
+        likes: [],
+        comments: [],
+        versions: [versionObj]
+      };
+      communityDecks.unshift(newPost);
+    }
+
+    localStorage.setItem('riftbound_community_decks', JSON.stringify(communityDecks));
+    setPublishSuccessMsg('Deck published to Community Decks!');
+    setTimeout(() => {
+      setPublishSuccessMsg('');
+      setPublishModalOpen(false);
+      navigate('/community');
+    }, 1200);
+  };
+
   return (
     <Container fluid className="p-0 text-light">
       <div className="deck-builder-layout">
@@ -423,7 +526,7 @@ export default function DeckEditor() {
               <p className="text-secondary-glow m-0 text-xs">Browse the card collection and click cards to add them to your deck</p>
             </Col>
             
-            <Col md={5} className="text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end">
+            <Col md={5} className="text-md-end mt-2 mt-md-0 d-flex gap-2 justify-content-md-end flex-wrap">
               <Button variant="outline-danger" size="sm" onClick={clearDeck}>
                 🗑️ Clear
               </Button>
@@ -432,6 +535,9 @@ export default function DeckEditor() {
               </Button>
               <Button variant="cyan" size="sm" onClick={exportDeck} disabled={!selectedLegend}>
                 📋 Export List
+              </Button>
+              <Button variant="gold" size="sm" onClick={() => setPublishModalOpen(true)} disabled={!selectedLegend}>
+                🚀 Share Deck
               </Button>
             </Col>
           </Row>
@@ -852,6 +958,75 @@ export default function DeckEditor() {
         </div>
 
       </div>
+
+      {/* PUBLISH TO COMMUNITY MODAL */}
+      <Modal 
+        show={publishModalOpen} 
+        onHide={() => setPublishModalOpen(false)} 
+        centered 
+        contentClassName="bg-dark text-light border-gold shadow-lg"
+      >
+        <Modal.Header closeButton closeVariant="white" className="border-bottom border-secondary-subtle">
+          <Modal.Title className="text-gold fs-5 font-bold uppercase m-0">🚀 Share Deck to Community</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          {publishSuccessMsg ? (
+            <Alert variant="success" className="text-center font-bold animate-pulse m-0">
+              ✨ {publishSuccessMsg}
+            </Alert>
+          ) : (
+            <Form onSubmit={handlePublishDeck}>
+              <Form.Group className="mb-3" controlId="pubTitleInput">
+                <Form.Label className="text-gold text-xs font-bold uppercase">Deck Title</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="e.g. Kai'Sa Void Evolution"
+                  className="bg-darker border-secondary text-white text-xs py-2"
+                  value={publishTitle}
+                  onChange={(e) => setPublishTitle(e.target.value)}
+                  required
+                />
+                <Form.Text className="text-muted text-xxs">
+                  If you have already published a deck with this title, your update will be saved as a new version under the same post!
+                </Form.Text>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="pubVersionInput">
+                <Form.Label className="text-gold text-xs font-bold uppercase">Version Name / Label</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="e.g. v1, v2 - Added Spells"
+                  className="bg-darker border-secondary text-white text-xs py-2"
+                  value={publishVersionName}
+                  onChange={(e) => setPublishVersionName(e.target.value)}
+                  required
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4" controlId="pubDescInput">
+                <Form.Label className="text-gold text-xs font-bold uppercase">Description / Change Notes</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Explain strategy, synergies, or version changes..."
+                  className="bg-darker border-secondary text-white text-xs p-2"
+                  value={publishDesc}
+                  onChange={(e) => setPublishDesc(e.target.value)}
+                />
+              </Form.Group>
+
+              <div className="d-flex justify-content-end gap-2">
+                <Button variant="outline-secondary" size="sm" onClick={() => setPublishModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="gold" size="sm" type="submit" className="fw-bold uppercase px-3">
+                  Publish Deck
+                </Button>
+              </div>
+            </Form>
+          )}
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 }

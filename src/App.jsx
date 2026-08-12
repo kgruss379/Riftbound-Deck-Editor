@@ -60,6 +60,14 @@ export default function App() {
               >
                 Deck Editor
               </Nav.Link>
+              <Nav.Link 
+                as={Link} 
+                to="/community" 
+                active={location.pathname === '/community'} 
+                className="nav-link-custom mx-2"
+              >
+                Community Decks
+              </Nav.Link>
 
               {/* User Session Info & Logout Control */}
               <div className="d-flex align-items-center gap-2 ms-lg-3 mt-3 mt-lg-0 border-lg-start ps-lg-3 border-secondary-subtle">
@@ -82,7 +90,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-grow-1">
-        <Outlet />
+        <Outlet context={{ username }} />
       </main>
 
       {/* Footer */}

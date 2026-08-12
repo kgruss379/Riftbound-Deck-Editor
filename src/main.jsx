@@ -6,6 +6,7 @@ import './index.css';
 import App from './App.jsx';
 import Home from './pages/Home.jsx';
 import DeckEditor from './pages/DeckEditor.jsx';
+import CommunityDecks from './pages/CommunityDecks.jsx';
 
 // Configure declarative routing using HashRouter for GitHub Pages compatibility
 const router = createHashRouter([
@@ -20,6 +21,10 @@ const router = createHashRouter([
       {
         path: 'editor',
         element: <DeckEditor />,
+      },
+      {
+        path: 'community',
+        element: <CommunityDecks />,
       },
     ],
   },

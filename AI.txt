@@ -47,6 +47,9 @@ USER CONTRIBUTIONS
 7. Session & Access Controls:
    * Requested credentials-based secure login, user signup capabilities, and a guest login bypass route.
 
+8. Public Community Portal & Versioning:
+   * Requested a public page where users can post decks, thumbs-up posts, leave comments, restrict edit/delete rights to the original author, and store multiple historical versions of the same deck post.
+
 
 ------------------------------------------------------------------------
 AI CONTRIBUTIONS
@@ -90,3 +93,7 @@ AI CONTRIBUTIONS
    * Stored registered credentials in a local user database within `localStorage` for complete client-side validation.
    * Wrapped routing content in an auth guard with persistent local sessions and nav bar user badges.
    * Added secure exit controls (Logout) to clear sessions on demand.
+
+8. Community Decks & Versioning Architecture:
+   * Built `src/pages/CommunityDecks.jsx` with catalog grid, search/legend filters, interactive version dropdown switchers, likes manager, and comment thread.
+   * Integrated a Share Deck portal in `DeckEditor.jsx` with auto-versioning, author permission checks, and an "Import into Editor" bridge.
