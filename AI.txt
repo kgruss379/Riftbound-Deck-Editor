@@ -1,0 +1,91 @@
+========================================================================
+                      RIFTBOUND DECK EDITOR PROJECT
+                          PROJECT CONTRIBUTIONS
+========================================================================
+
+------------------------------------------------------------------------
+USER CONTRIBUTIONS
+------------------------------------------------------------------------
+1. Initiative & Project Vision:
+   * Conceived and directed the development of a comprehensive offline Deck Editor
+     specifically designed for the physical tabletop card game, Riftbound.
+
+2. Design & Layout Direction:
+   * Shifted the layout architecture away from generic grid systems to a high-end
+     two-pane design inspired by Riftatlas and TCG-Arena (split between a sticky 
+     deck-building editor sidebar on the right and a card library gallery on the left).
+
+3. Card Database Integration:
+   * Provided the complete official dataset for Sets 1 through 3 in CSV format 
+     ("Copy of Riftbound - All Card Info - All Card Data.csv"), enabling 100% 
+     offline deck-building.
+
+4. Game Constraints & Validation Rules:
+   * Defined strict card category limits (Exactly 1 Legend, 3 Battlefields, 12 Runes, 
+     and 40 Main Deck cards).
+   * Dictated domain restrictions: Runes and Main Deck cards in the active deck 
+     must match the domain colors of the chosen Legend (except for Colorless cards 
+     in the main deck).
+   * Enforced that Champion Legends only show in the Command/Legends tab, restricting 
+     the Main Deck to Units, Spells, and Gear.
+
+5. Domain Color Specifications:
+   * Standardized the game's official domain color mappings:
+     - Fury: Red
+     - Mind: Blue
+     - Chaos: Purple
+     - Order: Yellow
+     - Calm: Green
+     - Body: Orange
+
+6. Quality Assurance & UI Polish:
+   * Caught React-Bootstrap uncontrolled nav state desyncs and prompted tab refactoring.
+   * Spotted card-art cropping issues and guided the transition to full uncropped card face displays.
+   * Directed that Battlefield cards exclusively be rotated sideways (horizontally) as they are played.
+   * Identified low-contrast/faint text elements in dark mode panels and requested visibility improvements.
+
+7. Session & Access Controls:
+   * Requested credentials-based secure login and a guest login bypass route.
+
+
+------------------------------------------------------------------------
+AI CONTRIBUTIONS
+------------------------------------------------------------------------
+1. CSV Data Engineering & Generation:
+   * Developed and executed Node.js parsing scripts to clean, structure, and bundle 
+     the 950+ CSV rows into a static offline JavaScript database (`src/data/cards.js`).
+
+2. Responsive UI Architecture:
+   * Built the dark-themed front-end layout utilizing React and React-Bootstrap.
+   * Designed a sticky, scrollable deck drawer showing current selection counts, 
+     animated deck strips with artwork backgrounds, and "Remove" click handles.
+
+3. Rule Engine & Domain Guards:
+   * Built validation guards blocking invalid deck additions (e.g. domain checks, size limits)
+     and added dynamic library card grey-outs (opacity & `not-allowed` cursors) to preview invalid choices.
+   * Coded real-time deck validation lists displaying clear status indicators.
+
+4. Advanced Card Gallery Layout:
+   * Overhauled the card grid to render full, uncropped card faces by establishing a 
+     strict physical TCG aspect ratio (`aspect-ratio: 744 / 1039`) with fallback text templates.
+   * Added conditional CSS aspect ratio flipping (`aspect-ratio: 1039 / 744`) to support horizontal 
+     landscape rendering specifically for Battlefield cards.
+   * Added responsive card zoom-scale transitions on hover.
+
+5. URL Parameter Routing & Deep Linking:
+   * Overhauled the Home page to feature a direct search bar that routes search queries to the editor.
+   * Integrated Legend URL parameter syncing (`?legend=id`) to support direct deep-linking 
+     into specific champion drafts.
+   * Replaced generic start instructions on the Home page with a featured Legend showcase portal 
+     (Kai'Sa, Jinx, Yasuo) linking straight into the editor.
+
+6. Visual Polish, Typography & Debugging:
+   * Integrated Google Fonts (`Cinzel` for fantasy titles, `Space Grotesk` for UI elements, `Outfit` for body text).
+   * Fixed duplicate key React reconciliation warnings caused by alternate-art Showcase cards sharing 
+     the same ID in the CSV (keying columns uniquely as `id-index`).
+   * Overrode global `.text-muted` contrast variables to ensure legibility across the dark theme canvas.
+
+7. Authentication & Session Management:
+   * Created a dedicated Login view with credentials checking and guest sign-in support.
+   * Wrapped routing content in an auth guard with persistent local sessions and nav bar user badges.
+   * Added secure exit controls (Logout) to clear sessions on demand.

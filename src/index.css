@@ -625,3 +625,52 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .slot-header, .card-title, .hero-title {
   transform: scale(1.06);
 }
 
+/* Authentication / Login Styles */
+.login-bg-wrapper {
+  background: radial-gradient(circle at 50% 50%, #0d121c 0%, var(--bg-darker) 100%);
+}
+
+.auth-card {
+  border: 1px solid rgba(200, 170, 110, 0.25) !important;
+}
+
+.auth-shield {
+  font-size: 3rem;
+  text-shadow: 0 0 15px rgba(200, 170, 110, 0.45);
+}
+
+.login-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input:focus {
+  background-color: rgba(5, 6, 8, 0.45) !important;
+  border-color: var(--gold-primary) !important;
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.3) !important;
+  color: #fff !important;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 992px) {
+  .border-lg-start {
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .ps-lg-3 {
+    padding-left: 1rem !important;
+  }
+}
+
