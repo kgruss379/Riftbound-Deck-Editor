@@ -1,0 +1,87 @@
+========================================================================
+RIFTBOUND TCG - SAMPLE DECKLISTS FOR DEMO IMPORTING
+========================================================================
+
+--- DECK 1: KAI'SA VOID EVOLUTION (AGGRO / SPURT) ---
+Legend: Kai'Sa
+1x Placidium of Navori
+1x Immortal Bastion
+1x Sunken Temple
+12x Void Rune
+3x Cleave
+3x Disintegrate
+3x Iron Spike
+3x Battle Cry
+3x Vanguard Defender
+3x Void Hatchling
+3x Blazing Scorcher
+3x Noxian Raider
+3x Shadow Assassin
+3x Arcane Blast
+3x Mystic Shield
+3x Dragon's Fury
+2x Titan's Might
+2x Rune Carved Blade
+
+--- DECK 2: JINX CHAOS ROCKET RUSH (DISCARD TEMPO) ---
+Legend: Jinx
+1x Zaun City Rooftops
+1x Void Gate
+1x Bandle City Woods
+12x Chaos Rune
+3x Cleave
+3x Disintegrate
+3x Iron Spike
+3x Zap Cannon
+3x Zaun Scrapper
+3x Rocket Launcher
+3x Flame Chomper
+3x Boom Bot
+3x Scrap Collector
+3x Shockwave
+3x Quick Draw
+3x Wildfire
+2x Energy Booster
+2x Chaos Battery
+
+--- DECK 3: YASUO WIND & BLADE CONTROL (DEFENSIVE TEMPO) ---
+Legend: Yasuo
+1x Placidium of Navori
+1x Sunken Temple
+1x Bandle City Woods
+12x Calm Rune
+3x Wind Wall
+3x Steel Tempest
+3x Tempest Blade
+3x Ionian Monk
+3x Gust of Wind
+3x Spirit Guard
+3x Meditation
+3x Flowing Strike
+3x Feather Footwork
+3x Deflective Palm
+3x Counter Strike
+3x Wind Rider
+2x Feathered Cape
+2x Balance Gem
+
+--- DECK 4: DARIUS NOXIAN OVERWHELM (HEAVY MIGHT) ---
+Legend: Darius
+1x Immortal Bastion
+1x Placidium of Navori
+1x Zaun City Rooftops
+12x Fury Rune
+3x Decimate
+3x Guillotine
+3x Noxian Vanguard
+3x Executioner
+3x War Elephant
+3x Bloodlust
+3x Heavy Cleaver
+3x Battle Horn
+3x Iron Will
+3x Reckless Charge
+3x Crimson Guard
+3x Siege Engine
+2x Blood Mace
+2x Commander Shield

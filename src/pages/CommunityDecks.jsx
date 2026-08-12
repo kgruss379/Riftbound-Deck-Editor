@@ -7,9 +7,9 @@ const SEEDED_DECKS = [
   {
     id: 'deck-seed-1',
     title: "Kai'Sa Void Evolution",
-    description: 'Focuses on rapid Rune generation to trigger reaction spells and overwhelm with Void units.',
+    description: 'Focuses on rapid Rune generation to trigger reaction spells and overwhelm opponents with Void units.',
     author: 'Sarah',
-    likes: ['Alex', 'Gamer99', 'RiftMaster'],
+    likes: ['Alex', 'Gamer99', 'RiftMaster', 'FoxFire', 'Keegan'],
     comments: [
       {
         id: 'c-1',
@@ -34,10 +34,20 @@ const SEEDED_DECKS = [
           battlefieldIds: ['ogn-1653', 'ogn-1654', 'ogn-1655'],
           runeDeck: [{ cardId: 'ogn-1507', count: 12 }],
           mainDeck: [
-            { cardId: 'ogn-2327', count: 3 },
-            { cardId: 'ogn-2328', count: 3 },
-            { cardId: 'ogn-2329', count: 3 },
-            { cardId: 'ogn-2330', count: 3 }
+            { cardId: 'ogn-001', count: 3 },
+            { cardId: 'ogn-002', count: 3 },
+            { cardId: 'ogn-003', count: 3 },
+            { cardId: 'ogn-004', count: 3 },
+            { cardId: 'ogn-005', count: 3 },
+            { cardId: 'ogn-006', count: 3 },
+            { cardId: 'ogn-007', count: 3 },
+            { cardId: 'ogn-008', count: 3 },
+            { cardId: 'ogn-009', count: 3 },
+            { cardId: 'ogn-010', count: 3 },
+            { cardId: 'ogn-011', count: 3 },
+            { cardId: 'ogn-012', count: 3 },
+            { cardId: 'ogn-013', count: 2 },
+            { cardId: 'ogn-014', count: 2 }
           ]
         }
       },
@@ -50,8 +60,10 @@ const SEEDED_DECKS = [
           battlefieldIds: ['ogn-1653', 'ogn-1654', 'ogn-1655'],
           runeDeck: [{ cardId: 'ogn-1507', count: 12 }],
           mainDeck: [
-            { cardId: 'ogn-2327', count: 3 },
-            { cardId: 'ogn-2328', count: 3 }
+            { cardId: 'ogn-001', count: 3 },
+            { cardId: 'ogn-002', count: 3 },
+            { cardId: 'ogn-003', count: 3 },
+            { cardId: 'ogn-004', count: 3 }
           ]
         }
       }
@@ -62,16 +74,40 @@ const SEEDED_DECKS = [
     title: 'Jinx Chaos Rocket Burst',
     description: 'Empty your hand fast to draw free cards every turn with Jinx Loose Cannon.',
     author: 'Alex',
-    likes: ['Sarah'],
+    likes: ['Sarah', 'RiftMaster', 'Keegan'],
     comments: [
       {
         id: 'c-3',
         author: 'Gamer99',
-        text: 'Jinx is super fun to play. Love the aggressive curve.',
+        text: 'Jinx is super fun to play. Love the aggressive low-cost curve.',
         timestamp: '2026-08-11T09:12:00.000Z'
       }
     ],
     versions: [
+      {
+        versionName: 'v2 - Aggro Curve (Current)',
+        changeLog: 'Lowered curve for faster hand emptying.',
+        timestamp: '2026-08-11T10:00:00.000Z',
+        deck: {
+          legendId: 'ogn-251',
+          battlefieldIds: ['ogn-1656', 'ogn-1657', 'ogn-1658'],
+          runeDeck: [{ cardId: 'ogn-1508', count: 12 }],
+          mainDeck: [
+            { cardId: 'ogn-001', count: 3 },
+            { cardId: 'ogn-003', count: 3 },
+            { cardId: 'ogn-004', count: 3 },
+            { cardId: 'ogn-005', count: 3 },
+            { cardId: 'ogn-007', count: 3 },
+            { cardId: 'ogn-008', count: 3 },
+            { cardId: 'ogn-009', count: 3 },
+            { cardId: 'ogn-011', count: 3 },
+            { cardId: 'ogn-012', count: 3 },
+            { cardId: 'ogn-013', count: 3 },
+            { cardId: 'ogn-014', count: 3 },
+            { cardId: 'ogn-015', count: 4 }
+          ]
+        }
+      },
       {
         versionName: 'v1 - Main Build',
         changeLog: 'Standard 40-card low energy curve.',
@@ -81,8 +117,8 @@ const SEEDED_DECKS = [
           battlefieldIds: ['ogn-1656', 'ogn-1657', 'ogn-1658'],
           runeDeck: [{ cardId: 'ogn-1508', count: 12 }],
           mainDeck: [
-            { cardId: 'ogn-2331', count: 3 },
-            { cardId: 'ogn-2332', count: 3 }
+            { cardId: 'ogn-001', count: 3 },
+            { cardId: 'ogn-003', count: 3 }
           ]
         }
       }
@@ -90,22 +126,108 @@ const SEEDED_DECKS = [
   },
   {
     id: 'deck-seed-3',
-    title: 'Yasuo Wind Control',
-    description: 'Control battlefields by repositioning friendly units out of danger.',
+    title: 'Yasuo Wind & Blade Control',
+    description: 'Control battlefields by repositioning friendly units out of danger and disabling attackers.',
     author: 'Gamer99',
-    likes: ['Sarah', 'Alex', 'Keegan'],
-    comments: [],
+    likes: ['Sarah', 'Alex', 'Keegan', 'RiftMaster', 'FoxFire', 'ProGamer'],
+    comments: [
+      {
+        id: 'c-4',
+        author: 'RiftMaster',
+        text: 'This control package is top tier for local tournaments.',
+        timestamp: '2026-08-11T12:30:00.000Z'
+      }
+    ],
     versions: [
       {
-        versionName: 'v1 - Base Control',
-        changeLog: 'Calm and Chaos defensive positioning list.',
-        timestamp: '2026-08-11T11:00:00.000Z',
+        versionName: 'v3 - Tournament Ready (Current)',
+        changeLog: 'Added defensive reaction spells.',
+        timestamp: '2026-08-11T12:00:00.000Z',
         deck: {
           legendId: 'ogn-259',
           battlefieldIds: ['ogn-1653', 'ogn-1656', 'ogn-1657'],
           runeDeck: [{ cardId: 'ogn-1509', count: 12 }],
           mainDeck: [
-            { cardId: 'ogn-2333', count: 3 }
+            { cardId: 'ogn-002', count: 3 },
+            { cardId: 'ogn-004', count: 3 },
+            { cardId: 'ogn-006', count: 3 },
+            { cardId: 'ogn-008', count: 3 },
+            { cardId: 'ogn-010', count: 3 },
+            { cardId: 'ogn-012', count: 3 },
+            { cardId: 'ogn-014', count: 3 },
+            { cardId: 'ogn-015', count: 3 },
+            { cardId: 'ogn-016', count: 3 },
+            { cardId: 'ogn-017', count: 3 },
+            { cardId: 'ogn-018', count: 3 },
+            { cardId: 'ogn-019', count: 4 }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    id: 'deck-seed-4',
+    title: 'Darius Noxian Overwhelm',
+    description: 'High-might units that overpower defensive blockers and crush enemy nexus points.',
+    author: 'RiftMaster',
+    likes: ['Alex', 'FoxFire'],
+    comments: [],
+    versions: [
+      {
+        versionName: 'v1 - Might Rush',
+        changeLog: 'Heavy assault unit core.',
+        timestamp: '2026-08-11T14:15:00.000Z',
+        deck: {
+          legendId: 'ogn-245',
+          battlefieldIds: ['ogn-1654', 'ogn-1653', 'ogn-1656'],
+          runeDeck: [{ cardId: 'ogn-1510', count: 12 }],
+          mainDeck: [
+            { cardId: 'ogn-001', count: 3 },
+            { cardId: 'ogn-002', count: 3 },
+            { cardId: 'ogn-003', count: 3 },
+            { cardId: 'ogn-005', count: 3 },
+            { cardId: 'ogn-007', count: 3 },
+            { cardId: 'ogn-009', count: 3 },
+            { cardId: 'ogn-011', count: 3 },
+            { cardId: 'ogn-013', count: 3 },
+            { cardId: 'ogn-015', count: 3 },
+            { cardId: 'ogn-017', count: 3 },
+            { cardId: 'ogn-019', count: 3 },
+            { cardId: 'ogn-020', count: 4 }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    id: 'deck-seed-5',
+    title: 'Ahri Spirit Mobility',
+    description: 'Elusive spirit units that bypass heavy defenders and strike directly for game-ending damage.',
+    author: 'FoxFire',
+    likes: ['Sarah', 'Gamer99'],
+    comments: [],
+    versions: [
+      {
+        versionName: 'v1 - Elusive Tempo',
+        changeLog: 'Initial spirit deck list.',
+        timestamp: '2026-08-11T16:40:00.000Z',
+        deck: {
+          legendId: 'ogn-241',
+          battlefieldIds: ['ogn-1653', 'ogn-1657', 'ogn-1658'],
+          runeDeck: [{ cardId: 'ogn-1511', count: 12 }],
+          mainDeck: [
+            { cardId: 'ogn-002', count: 3 },
+            { cardId: 'ogn-004', count: 3 },
+            { cardId: 'ogn-006', count: 3 },
+            { cardId: 'ogn-008', count: 3 },
+            { cardId: 'ogn-010', count: 3 },
+            { cardId: 'ogn-012', count: 3 },
+            { cardId: 'ogn-014', count: 3 },
+            { cardId: 'ogn-016', count: 3 },
+            { cardId: 'ogn-018', count: 3 },
+            { cardId: 'ogn-020', count: 3 },
+            { cardId: 'ogn-021', count: 4 },
+            { cardId: 'ogn-022', count: 3 }
           ]
         }
       }
@@ -140,8 +262,15 @@ export default function CommunityDecks() {
       setDecks(SEEDED_DECKS);
     } else {
       try {
-        setDecks(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length < SEEDED_DECKS.length) {
+          localStorage.setItem('riftbound_community_decks', JSON.stringify(SEEDED_DECKS));
+          setDecks(SEEDED_DECKS);
+        } else {
+          setDecks(parsed);
+        }
       } catch (e) {
+        localStorage.setItem('riftbound_community_decks', JSON.stringify(SEEDED_DECKS));
         setDecks(SEEDED_DECKS);
       }
     }
