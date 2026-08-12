@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, Badge, ListGroup, Tab, Nav, Alert, Modal, InputGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Form, Badge, ListGroup, Tab, Nav, Alert, Modal, InputGroup, ProgressBar, Toast, ToastContainer } from 'react-bootstrap';
 import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { CARDS_DATABASE } from '../data/cards';
 import { getAccountByRiotId, getSummonerByPuuid, getTopMasteriesByPuuid, CHAMPION_ID_MAP, isApiKeyAvailable } from '../services/riotApi';
@@ -19,11 +19,19 @@ export default function DeckEditor() {
   const [runeDeck, setRuneDeck] = useState([]); // Array of { card, count }
   const [selectedBattlefields, setSelectedBattlefields] = useState([]); // Array of cards (max 3)
   
-  // Search & Filter State
+  // Search & Advanced Filter State
   const [searchQuery, setSearchQuery] = useState(searchParamQuery);
   const [domainFilter, setDomainFilter] = useState('all');
+  const [subTypeFilter, setSubTypeFilter] = useState('all'); // all, unit, spell, gear
+  const [rarityFilter, setRarityFilter] = useState('all'); // all, common, rare, epic, showcase
   const [activePoolTab, setActivePoolTab] = useState('legends');
   const [activeCostFilter, setActiveCostFilter] = useState(null); // null or number (0-7)
+
+  // UX Feature States: Inspector Lightbox, Text Importer, & Toasts
+  const [inspectedCard, setInspectedCard] = useState(null);
+  const [importTextModalOpen, setImportTextModalOpen] = useState(false);
+  const [importRawText, setImportRawText] = useState('');
+  const [toastState, setToastState] = useState({ show: false, message: '', variant: 'success' });
 
   // Publish / Share to Community Modal States
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -31,6 +39,11 @@ export default function DeckEditor() {
   const [publishDesc, setPublishDesc] = useState('');
   const [publishVersionName, setPublishVersionName] = useState('v1');
   const [publishSuccessMsg, setPublishSuccessMsg] = useState('');
+
+  // Helper trigger for non-intrusive Toast messages
+  const triggerToast = (message, variant = 'success') => {
+    setToastState({ show: true, message, variant });
+  };
 
   // Riot API Sync State
   const [riotId, setRiotId] = useState('');
@@ -167,24 +180,30 @@ export default function DeckEditor() {
       const newAllowed = [...card.domains, 'Colorless'];
       setMainDeck(prev => prev.filter(item => item.card.domains.some(d => newAllowed.includes(d))));
       setRuneDeck(prev => prev.filter(item => item.card.domains.some(d => newAllowed.includes(d))));
+      triggerToast(`Selected Legend: ${card.name}`, 'success');
     } else if (typeLower === 'battlefield') {
       setSelectedBattlefields(prev => {
         // Toggle selected battlefield
         const exists = prev.find(b => b.id === card.id);
         if (exists) {
+          triggerToast(`Removed Battlefield: ${card.name}`, 'info');
           return prev.filter(b => b.id !== card.id);
         }
-        if (prev.length >= 3) return prev; // max 3
+        if (prev.length >= 3) {
+          triggerToast('Maximum 3 Battlefields allowed', 'warning');
+          return prev;
+        }
+        triggerToast(`Added Battlefield: ${card.name}`, 'success');
         return [...prev, card];
       });
     } else if (typeLower === 'rune') {
       if (!selectedLegend) {
-        alert('Please select a Legend first before adding Runes.');
+        triggerToast('Select a Legend first before adding Runes', 'warning');
         return;
       }
       const matchesLegend = card.domains.some(d => selectedLegend.domains.includes(d));
       if (!matchesLegend) {
-        alert(`Cannot add "${card.name}". Runes must match your Legend's domains (${selectedLegend.domains.join('/')}).`);
+        triggerToast(`Rune domain (${card.domains.join('/')}) does not match Legend`, 'danger');
         return;
       }
       setRuneDeck(prev => {
@@ -192,22 +211,30 @@ export default function DeckEditor() {
         const currentTotal = prev.reduce((sum, item) => sum + item.count, 0);
         
         if (existing) {
-          if (currentTotal >= 12 || existing.count >= 4) return prev;
+          if (currentTotal >= 12 || existing.count >= 4) {
+            triggerToast('Rune deck limit reached', 'warning');
+            return prev;
+          }
+          triggerToast(`Added ${card.name} (${existing.count + 1})`, 'success');
           return prev.map(item => item.card.id === card.id ? { ...item, count: item.count + 1 } : item);
         } else {
-          if (currentTotal >= 12) return prev;
+          if (currentTotal >= 12) {
+            triggerToast('Rune deck capacity full (12/12)', 'warning');
+            return prev;
+          }
+          triggerToast(`Added ${card.name}`, 'success');
           return [...prev, { card, count: 1 }];
         }
       });
     } else {
       // Main Deck cards: Unit, Spell, Gear
       if (!selectedLegend) {
-        alert('Please select a Legend first before adding cards to the Main Deck.');
+        triggerToast('Select a Legend first before adding Main Deck cards', 'warning');
         return;
       }
       const matchesLegend = card.domains.some(d => allowedDomains.includes(d));
       if (!matchesLegend) {
-        alert(`Cannot add "${card.name}". Cards must match your Legend's domains (${selectedLegend.domains.join('/')}).`);
+        triggerToast(`Card domain (${card.domains.join('/')}) outside Legend domains`, 'danger');
         return;
       }
       setMainDeck(prev => {
@@ -215,10 +242,18 @@ export default function DeckEditor() {
         const currentTotal = prev.reduce((sum, item) => sum + item.count, 0);
 
         if (existing) {
-          if (currentTotal >= 40 || existing.count >= 3) return prev;
+          if (currentTotal >= 40 || existing.count >= 3) {
+            triggerToast(existing.count >= 3 ? 'Max 3 copies per card' : 'Main deck capacity full (40/40)', 'warning');
+            return prev;
+          }
+          triggerToast(`Added ${card.name} (${existing.count + 1})`, 'success');
           return prev.map(item => item.card.id === card.id ? { ...item, count: item.count + 1 } : item);
         } else {
-          if (currentTotal >= 40) return prev;
+          if (currentTotal >= 40) {
+            triggerToast('Main deck capacity full (40/40)', 'warning');
+            return prev;
+          }
+          triggerToast(`Added ${card.name}`, 'success');
           return [...prev, { card, count: 1 }];
         }
       });
@@ -254,15 +289,14 @@ export default function DeckEditor() {
     setMainDeck([]);
     setRuneDeck([]);
     setSelectedBattlefields([]);
+    triggerToast('Cleared active deck build', 'info');
   };
 
   // Load a dynamic sample deck matching a Legend
   const loadSampleDeck = () => {
-    // 1. Choose Jinx (Fury/Chaos Legend)
     const legend = cardDatabase.legends.find(l => l.id === 'ogn-251') || cardDatabase.legends[0];
     setSelectedLegend(legend);
 
-    // 2. Set up Main Deck (40 cards total)
     const allowed = legend.domains;
     const legalMainCards = cardDatabase.mainDeck.filter(m => m.domains.some(d => allowed.includes(d)));
     const deck = [];
@@ -276,7 +310,6 @@ export default function DeckEditor() {
     }
     setMainDeck(deck);
 
-    // 3. Set up Rune Deck (12 runes)
     const legalRunes = cardDatabase.runes.filter(r => r.domains.some(d => allowed.includes(d)));
     const runes = [];
     let runeTotal = 0;
@@ -288,29 +321,84 @@ export default function DeckEditor() {
       runeTotal += count;
     }
     setRuneDeck(runes);
-
-    // 4. Battlefields (3 battlefields)
     setSelectedBattlefields(cardDatabase.battlefields.slice(0, 3));
+
+    triggerToast('Loaded sample Kai\'Sa Void Surge deck!', 'success');
   };
 
-  // Filtered card pool based on search, cost, active tab, and domain filter
+  // Handle Text Deck Import
+  const handleImportTextList = (e) => {
+    e.preventDefault();
+    if (!importRawText.trim()) return;
+
+    const lines = importRawText.split('\n');
+    let addedCount = 0;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('===') || trimmed.startsWith('---')) return;
+
+      const match = trimmed.match(/^(\d+)\s*x?\s+(.+)$/i) || trimmed.match(/^x?(\d+)\s+(.+)$/i);
+      let count = 1;
+      let nameStr = trimmed;
+
+      if (match) {
+        count = parseInt(match[1], 10);
+        nameStr = match[2].replace(/\(Cost:.*?\)/i, '').trim();
+      }
+
+      const foundLegend = CARDS_DATABASE.legends.find(c => c.name.toLowerCase() === nameStr.toLowerCase() || c.name.toLowerCase().includes(nameStr.toLowerCase()));
+      if (foundLegend && !selectedLegend) {
+        setSelectedLegend(foundLegend);
+        addedCount++;
+        return;
+      }
+
+      const foundRune = CARDS_DATABASE.runes.find(c => c.name.toLowerCase() === nameStr.toLowerCase());
+      if (foundRune) {
+        setRuneDeck(prev => {
+          const existing = prev.find(i => i.card.id === foundRune.id);
+          if (existing) return prev.map(i => i.card.id === foundRune.id ? { ...i, count: Math.min(i.count + count, 12) } : i);
+          return [...prev, { card: foundRune, count: Math.min(count, 12) }];
+        });
+        addedCount++;
+        return;
+      }
+
+      const foundBattlefield = CARDS_DATABASE.battlefields.find(c => c.name.toLowerCase() === nameStr.toLowerCase());
+      if (foundBattlefield) {
+        setSelectedBattlefields(prev => {
+          if (prev.find(b => b.id === foundBattlefield.id)) return prev;
+          if (prev.length >= 3) return prev;
+          return [...prev, foundBattlefield];
+        });
+        addedCount++;
+        return;
+      }
+
+      const foundMain = CARDS_DATABASE.mainDeck.find(c => c.name.toLowerCase() === nameStr.toLowerCase() || c.name.toLowerCase().includes(nameStr.toLowerCase()));
+      if (foundMain) {
+        setMainDeck(prev => {
+          const existing = prev.find(i => i.card.id === foundMain.id);
+          if (existing) return prev.map(i => i.card.id === foundMain.id ? { ...i, count: Math.min(i.count + count, 3) } : i);
+          return [...prev, { card: foundMain, count: Math.min(count, 3) }];
+        });
+        addedCount++;
+      }
+    });
+
+    setImportTextModalOpen(false);
+    setImportRawText('');
+    triggerToast(`Successfully imported ${addedCount} card entries into editor!`, 'success');
+  };
+
+  // Filtered card pool based on search, cost, active tab, sub-type, rarity, and domain filter
   const filteredCardPool = useMemo(() => {
-    console.log('--- FILTERING CARD POOL ---');
-    console.log('activePoolTab:', activePoolTab);
-    console.log('cardDatabase keys:', Object.keys(cardDatabase || {}));
-    console.log('cardDatabase.legends length:', cardDatabase?.legends?.length);
-    console.log('cardDatabase.mainDeck length:', cardDatabase?.mainDeck?.length);
-    
     let pool = [];
     if (activePoolTab === 'legends') pool = cardDatabase.legends;
     else if (activePoolTab === 'runes') pool = cardDatabase.runes;
     else if (activePoolTab === 'main') pool = cardDatabase.mainDeck;
     else if (activePoolTab === 'battlefields') pool = cardDatabase.battlefields;
-
-    console.log('Selected pool size before filters:', pool?.length);
-    if (pool && pool.length > 0) {
-      console.log('Sample types in selected pool:', Array.from(new Set(pool.map(c => c.type))));
-    }
 
     // Search query filter
     if (searchQuery.trim() !== '') {
@@ -327,6 +415,16 @@ export default function DeckEditor() {
       pool = pool.filter(card => card.domains && card.domains.includes(domainFilter));
     }
 
+    // Sub-Type filter (for Main Deck tab)
+    if (activePoolTab === 'main' && subTypeFilter !== 'all') {
+      pool = pool.filter(card => card.type && card.type.toLowerCase() === subTypeFilter.toLowerCase());
+    }
+
+    // Rarity filter
+    if (rarityFilter !== 'all') {
+      pool = pool.filter(card => card.rarity && card.rarity.toLowerCase() === rarityFilter.toLowerCase());
+    }
+
     // Cost filter
     if (activeCostFilter !== null) {
       pool = pool.filter(card => {
@@ -337,11 +435,46 @@ export default function DeckEditor() {
     }
 
     return pool;
-  }, [activePoolTab, searchQuery, domainFilter, activeCostFilter, cardDatabase]);
+  }, [activePoolTab, searchQuery, domainFilter, subTypeFilter, rarityFilter, activeCostFilter, cardDatabase]);
 
   // Deck metrics calculations
   const mainDeckTotal = useMemo(() => mainDeck.reduce((sum, item) => sum + item.count, 0), [mainDeck]);
   const runeDeckTotal = useMemo(() => runeDeck.reduce((sum, item) => sum + item.count, 0), [runeDeck]);
+  
+  // Composition & Analytics Metrics
+  const deckComposition = useMemo(() => {
+    let units = 0;
+    let spells = 0;
+    let gear = 0;
+    let totalCost = 0;
+    let countCostCards = 0;
+
+    mainDeck.forEach(item => {
+      const typeLower = (item.card.type || '').toLowerCase();
+      if (typeLower === 'unit') units += item.count;
+      else if (typeLower === 'spell') spells += item.count;
+      else if (typeLower === 'gear') gear += item.count;
+
+      if (typeof item.card.cost === 'number') {
+        totalCost += (item.card.cost * item.count);
+        countCostCards += item.count;
+      }
+    });
+
+    const avgCost = countCostCards > 0 ? (totalCost / countCostCards).toFixed(1) : '0.0';
+
+    return { units, spells, gear, avgCost };
+  }, [mainDeck]);
+
+  const overallCompletionPercent = useMemo(() => {
+    const isLegend = selectedLegend ? 1 : 0;
+    const bfs = Math.min(selectedBattlefields.length, 3);
+    const runes = Math.min(runeDeckTotal, 12);
+    const main = Math.min(mainDeckTotal, 40);
+
+    const totalPoints = isLegend + bfs + runes + main; // out of 56 total
+    return Math.round((totalPoints / 56) * 100);
+  }, [selectedLegend, selectedBattlefields, runeDeckTotal, mainDeckTotal]);
   
   // Real-time Mana Curve Calculations
   const manaCurveData = useMemo(() => {
@@ -421,7 +554,7 @@ export default function DeckEditor() {
   // Export decklist to clipboard
   const exportDeck = () => {
     if (!selectedLegend) {
-      alert('Please select a Legend before exporting.');
+      triggerToast('Please select a Legend before exporting.', 'warning');
       return;
     }
 
@@ -444,8 +577,8 @@ export default function DeckEditor() {
     });
 
     navigator.clipboard.writeText(text)
-      .then(() => alert('Decklist successfully copied to clipboard!'))
-      .catch(() => alert('Failed to copy decklist. Please select and copy manually.'));
+      .then(() => triggerToast('Decklist successfully copied to clipboard!', 'success'))
+      .catch(() => triggerToast('Failed to copy decklist to clipboard.', 'danger'));
   };
 
   // Helper to determine CSS classes for card types & domains
@@ -600,7 +733,7 @@ export default function DeckEditor() {
 
             <Row className="g-3 align-items-center">
               {/* Domain Pill Selectors */}
-              <Col md={7}>
+              <Col lg={7}>
                 <div className="d-flex align-items-center gap-2 flex-wrap">
                   <span className="text-muted text-xs font-semibold uppercase me-1">Domains:</span>
                   <div 
@@ -622,7 +755,7 @@ export default function DeckEditor() {
               </Col>
 
               {/* Mana cost gem toggles */}
-              <Col md={5} className="d-flex justify-content-md-end">
+              <Col lg={5} className="d-flex justify-content-lg-end">
                 <div className="d-flex align-items-center gap-2">
                   <span className="text-muted text-xs font-semibold uppercase me-1">Cost:</span>
                   <div className="mana-gem-container">
@@ -639,13 +772,53 @@ export default function DeckEditor() {
                 </div>
               </Col>
             </Row>
+
+            {/* Sub-Type & Rarity Filters (Row 3) */}
+            <Row className="g-3 align-items-center mt-1">
+              <Col md={6}>
+                <div className="d-flex align-items-center gap-2 text-xs">
+                  <span className="text-muted font-semibold uppercase me-1">Sub-Type:</span>
+                  <Form.Select
+                    size="sm"
+                    className="bg-dark text-white border-secondary text-xs"
+                    style={{ width: 'auto', minWidth: '130px' }}
+                    value={subTypeFilter}
+                    onChange={(e) => setSubTypeFilter(e.target.value)}
+                  >
+                    <option value="all">All Types</option>
+                    <option value="unit">Units</option>
+                    <option value="spell">Spells</option>
+                    <option value="gear">Gear</option>
+                  </Form.Select>
+                </div>
+              </Col>
+
+              <Col md={6} className="d-flex justify-content-md-end">
+                <div className="d-flex align-items-center gap-2 text-xs">
+                  <span className="text-muted font-semibold uppercase me-1">Rarity:</span>
+                  <Form.Select
+                    size="sm"
+                    className="bg-dark text-gold border-secondary text-xs"
+                    style={{ width: 'auto', minWidth: '130px' }}
+                    value={rarityFilter}
+                    onChange={(e) => setRarityFilter(e.target.value)}
+                  >
+                    <option value="all">All Rarities</option>
+                    <option value="common">Common</option>
+                    <option value="rare">Rare</option>
+                    <option value="epic">Epic</option>
+                    <option value="showcase">Showcase</option>
+                  </Form.Select>
+                </div>
+              </Col>
+            </Row>
           </Card>
 
           {/* CARD GRID */}
           {filteredCardPool.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <p className="fs-5">No cards found matching your active filters.</p>
-              <Button size="sm" variant="outline-gold" onClick={() => { setSearchQuery(''); setDomainFilter('all'); setActiveCostFilter(null); }}>
+              <Button size="sm" variant="outline-gold" onClick={() => { setSearchQuery(''); setDomainFilter('all'); setSubTypeFilter('all'); setRarityFilter('all'); setActiveCostFilter(null); }}>
                 Clear Filters
               </Button>
             </div>
@@ -656,13 +829,11 @@ export default function DeckEditor() {
                 const isSelectedInDeck = (card.type === 'Legend' && selectedLegend?.id === card.id) ||
                                          (card.type === 'Battlefield' && selectedBattlefields.some(b => b.id === card.id));
                                          
-                // Check if this card is recommended based on Riot Sync
                 const isRecommended = recommendedChampions.some(rec => 
                   card.name.toLowerCase().includes(rec.name.toLowerCase()) || 
                   (card.tags && card.tags.some(tag => tag.toLowerCase() === rec.name.toLowerCase()))
                 );
 
-                // Grey out cards that don't match the selected Legend's allowed domains (only applies to runes and main deck cards)
                 const isInvalid = selectedLegend && 
                                   card.type !== 'Legend' && 
                                   card.type !== 'Battlefield' && 
@@ -677,6 +848,19 @@ export default function DeckEditor() {
                       onClick={() => !isInvalid && handleCardClick(card)}
                       style={isInvalid ? { cursor: 'not-allowed' } : {}}
                     >
+                      {/* Inspect Overlay Badge */}
+                      <div 
+                        className="position-absolute top-0 start-0 m-1 p-1 rounded-circle bg-dark border border-gold text-gold text-xxs shadow-sm"
+                        style={{ zIndex: 10, cursor: 'pointer', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Inspect Card Details"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspectedCard(card);
+                        }}
+                      >
+                        🔍
+                      </div>
+
                       {card.image ? (
                         <Card.Img 
                           variant="top" 
@@ -707,18 +891,35 @@ export default function DeckEditor() {
           )}
         </div>
 
-        {/* RIGHT COLUMN: Sticky Deck Drawer */}
+        {/* RIGHT COLUMN: Active Deck Sidebar */}
         <div className="deck-builder-sidebar">
           
-          <div className="p-3 border-bottom border-secondary" style={{ backgroundColor: 'rgba(5, 6, 8, 0.5)' }}>
-            <h2 className="fs-5 fw-bold m-0 text-gold text-glow">Active Deck</h2>
-            <div className="d-flex justify-content-between text-secondary-glow text-xs mt-1">
-              <span>Main: {mainDeckTotal}/40</span>
-              <span>Runes: {runeDeckTotal}/12</span>
-              <span>Battlefields: {selectedBattlefields.length}/3</span>
+          {/* Deck Analytics & Progress Header */}
+          <div className="p-3 border-bottom border-secondary bg-darker">
+            <h2 className="fs-5 fw-bold m-0 text-gold text-glow mb-1">Active Deck</h2>
+            <div className="d-flex justify-content-between text-secondary-glow text-xs mb-1">
+              <span>Main: <strong className="text-white">{mainDeckTotal}/40</strong></span>
+              <span>Runes: <strong className="text-white">{runeDeckTotal}/12</strong></span>
+              <span>Battlefields: <strong className="text-white">{selectedBattlefields.length}/3</strong></span>
             </div>
-          </div>
+            
+            <div className="mb-2">
+              <ProgressBar 
+                now={overallCompletionPercent} 
+                variant={overallCompletionPercent === 100 ? "success" : "cyan"} 
+                style={{ height: '6px' }}
+                className="bg-dark shadow-sm"
+              />
+            </div>
 
+            <div className="d-flex justify-content-between text-xxs text-muted flex-wrap">
+              <span>Units: <strong className="text-white">{deckComposition.units}</strong></span>
+              <span>Spells: <strong className="text-white">{deckComposition.spells}</strong></span>
+              <span>Gear: <strong className="text-white">{deckComposition.gear}</strong></span>
+              <span>Avg: <strong className="text-gold">{deckComposition.avgCost}⚡</strong></span>
+            </div>
+          </div> 
+          
           <div className="sidebar-scroll">
             
             {/* Legend Slot */}
@@ -1027,6 +1228,165 @@ export default function DeckEditor() {
           )}
         </Modal.Body>
       </Modal>
+
+      {/* TEXT DECK IMPORTER MODAL */}
+      <Modal 
+        show={importTextModalOpen} 
+        onHide={() => setImportTextModalOpen(false)} 
+        centered 
+        contentClassName="bg-dark text-light border-cyan shadow-lg"
+      >
+        <Modal.Header closeButton closeVariant="white" className="border-bottom border-secondary-subtle">
+          <Modal.Title className="text-cyan fs-5 font-bold uppercase m-0">📥 Import Decklist from Text</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          <Form onSubmit={handleImportTextList}>
+            <Form.Group className="mb-3" controlId="importRawTextArea">
+              <Form.Label className="text-gold text-xs font-bold uppercase">Paste Decklist Text</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={6}
+                placeholder={`Paste your decklist line-by-line, e.g.:\n1x Kai'Sa\n3x Blazing Scorcher\n12x Fury Rune`}
+                className="bg-darker border-secondary text-white text-xs p-2 font-monospace"
+                value={importRawText}
+                onChange={(e) => setImportRawText(e.target.value)}
+                required
+              />
+              <Form.Text className="text-muted text-xxs">
+                Cards will be matched by name against our 950+ card offline database and added directly into your active deck builder slots.
+              </Form.Text>
+            </Form.Group>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="outline-secondary" size="sm" onClick={() => setImportTextModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="cyan" size="sm" type="submit" className="fw-bold uppercase px-3">
+                Parse & Import
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* CARD INSPECTOR LIGHTBOX MODAL */}
+      {inspectedCard && (
+        <Modal
+          show={true}
+          onHide={() => setInspectedCard(null)}
+          centered
+          size="lg"
+          contentClassName="bg-dark text-light border-gold shadow-lg"
+        >
+          <Modal.Header closeButton closeVariant="white" className="border-bottom border-secondary-subtle">
+            <Modal.Title className="text-gold fs-5 font-bold uppercase m-0 d-flex align-items-center gap-2">
+              🔍 Card Inspector: {inspectedCard.name}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="p-4">
+            <Row className="g-4 align-items-center">
+              <Col md={5} className="text-center">
+                {inspectedCard.image ? (
+                  <img
+                    src={inspectedCard.image}
+                    alt={inspectedCard.name}
+                    className="img-fluid rounded border border-gold shadow-lg"
+                    style={{ maxHeight: '380px' }}
+                  />
+                ) : (
+                  <div className="p-5 bg-darker rounded border border-secondary text-muted">
+                    No Image Available
+                  </div>
+                )}
+              </Col>
+              <Col md={7}>
+                <div className="mb-3">
+                  <h3 className="text-white fw-bold fs-4 mb-1">{inspectedCard.name}</h3>
+                  <div className="d-flex gap-2 align-items-center mb-3 flex-wrap">
+                    <Badge bg="secondary" className="text-xs uppercase">{inspectedCard.type}</Badge>
+                    <Badge bg="dark" className="border border-gold text-gold text-xs uppercase">{inspectedCard.rarity || 'Common'}</Badge>
+                    {inspectedCard.domains && inspectedCard.domains.map(d => (
+                      <Badge key={d} className={`bg-domain-${d.toLowerCase()} text-dark text-xs`}>{d}</Badge>
+                    ))}
+                  </div>
+
+                  <Row className="g-2 mb-3">
+                    {typeof inspectedCard.cost === 'number' && (
+                      <Col xs={4}>
+                        <div className="p-2 rounded bg-darker border border-secondary text-center">
+                          <span className="text-xxs text-muted d-block uppercase font-bold">Energy Cost</span>
+                          <span className="fs-5 fw-bold text-gold">{inspectedCard.cost}</span>
+                        </div>
+                      </Col>
+                    )}
+                    {inspectedCard.might && (
+                      <Col xs={4}>
+                        <div className="p-2 rounded bg-darker border border-secondary text-center">
+                          <span className="text-xxs text-muted d-block uppercase font-bold">Might</span>
+                          <span className="fs-5 fw-bold text-danger">⚔️ {inspectedCard.might}</span>
+                        </div>
+                      </Col>
+                    )}
+                    {inspectedCard.power && (
+                      <Col xs={4}>
+                        <div className="p-2 rounded bg-darker border border-secondary text-center">
+                          <span className="text-xxs text-muted d-block uppercase font-bold">Power</span>
+                          <span className="fs-5 fw-bold text-cyan">⚡ {inspectedCard.power}</span>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+
+                  <div className="p-3 rounded bg-darker border border-secondary mb-4">
+                    <span className="text-xs text-gold font-bold uppercase d-block mb-1">Ability & Rules Text</span>
+                    <p className="text-secondary-glow text-xs m-0" style={{ lineHeight: '1.6' }}>
+                      {inspectedCard.text || 'No ability text.'}
+                    </p>
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <Button 
+                      variant="gold" 
+                      className="flex-grow-1 fw-bold text-uppercase" 
+                      onClick={() => {
+                        handleCardClick(inspectedCard);
+                        setInspectedCard(null);
+                      }}
+                    >
+                      ➕ Add to Deck
+                    </Button>
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={() => setInspectedCard(null)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Modal.Body>
+        </Modal>
+      )}
+
+      {/* FLOATING TOAST NOTIFICATION CONTAINER */}
+      <ToastContainer position="top-end" className="p-3 position-fixed" style={{ zIndex: 9999 }}>
+        <Toast
+          show={toastState.show}
+          onClose={() => setToastState({ ...toastState, show: false })}
+          delay={3000}
+          autohide
+          bg={toastState.variant}
+          className="text-white border-0 shadow-lg"
+        >
+          <Toast.Body className="d-flex justify-content-between align-items-center py-2 px-3 fw-bold text-xs">
+            <span>✨ {toastState.message}</span>
+            <Button variant="link" className="text-white p-0 ms-2 text-decoration-none" onClick={() => setToastState({ ...toastState, show: false })}>
+              ✕
+            </Button>
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
     </Container>
   );
 }

@@ -50,6 +50,9 @@ USER CONTRIBUTIONS
 8. Public Community Portal & Versioning:
    * Requested a public page where users can post decks, thumbs-up posts, leave comments, restrict edit/delete rights to the original author, and store multiple historical versions of the same deck post.
 
+9. Quality of Life & Analytics Upgrades:
+   * Requested comprehensive UX enhancements, non-intrusive notifications, card details inspection, text list imports, and analytics.
+
 
 ------------------------------------------------------------------------
 AI CONTRIBUTIONS
@@ -97,3 +100,7 @@ AI CONTRIBUTIONS
 8. Community Decks & Versioning Architecture:
    * Built `src/pages/CommunityDecks.jsx` with catalog grid, search/legend filters, interactive version dropdown switchers, likes manager, and comment thread.
    * Integrated a Share Deck portal in `DeckEditor.jsx` with auto-versioning, author permission checks, and an "Import into Editor" bridge.
+
+9. UX Engine & Analytics Overhaul:
+   * Replaced native alert popups with animated Toast notifications.
+   * Implemented a HD Card Inspector Lightbox modal, Text List Deck Importer, Sub-Type & Rarity filters, and a real-time Deck Completion Progress Bar with Unit/Spell/Gear ratio analytics.
