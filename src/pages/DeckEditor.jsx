@@ -1037,50 +1037,79 @@ export default function DeckEditor() {
               })}
             </div>
 
-            {/* VALIDATION CHECKLIST */}
-            <div className="slot-header">🚨 Rules Check</div>
-            <Card className="bg-dark p-2 border-secondary mb-3">
-              <div className="d-flex flex-column gap-1">
-                <div className="d-flex align-items-center justify-content-between text-xs">
-                  <span>Legend Selected:</span>
-                  <span className={validationResults.legend.ok ? 'text-success' : 'text-danger'}>
-                    {validationResults.legend.ok ? '✓ Yes' : '✗ No'}
-                  </span>
-                </div>
-                <div className="d-flex align-items-center justify-content-between text-xs">
-                  <span>Main Deck Count (40):</span>
-                  <span className={validationResults.mainSize.ok ? 'text-success' : 'text-danger'}>
-                    {validationResults.mainSize.ok ? '✓ Correct' : '✗ Incorrect'}
-                  </span>
-                </div>
-                <div className="d-flex align-items-center justify-content-between text-xs">
-                  <span>Rune Deck Count (12):</span>
-                  <span className={validationResults.runeSize.ok ? 'text-success' : 'text-danger'}>
-                    {validationResults.runeSize.ok ? '✓ Correct' : '✗ Incorrect'}
-                  </span>
-                </div>
-                <div className="d-flex align-items-center justify-content-between text-xs">
-                  <span>Battlefields Selected (3):</span>
-                  <span className={validationResults.battlefieldSize.ok ? 'text-success' : 'text-danger'}>
-                    {validationResults.battlefieldSize.ok ? '✓ Correct' : '✗ Incorrect'}
-                  </span>
-                </div>
-                <div className="d-flex align-items-center justify-content-between text-xs">
-                  <span>Domain Colors Check:</span>
-                  <span className={validationResults.domainLegal.ok ? 'text-success' : 'text-danger'}>
-                    {validationResults.domainLegal.ok ? '✓ Legal' : '✗ Illegal Cards'}
-                  </span>
-                </div>
-              </div>
+            {/* DECK LEGALITY STATUS & RULES CHECK */}
+            {(() => {
+              const isFullyLegal = validationResults.errors.length === 0;
+              return (
+                <div className="mb-3">
+                  <div className="slot-header d-flex justify-content-between align-items-center mb-2">
+                    <span className="d-flex align-items-center gap-1">🛡️ Legality Status</span>
+                    <Badge bg={isFullyLegal ? "success" : "warning"} className={`text-xs font-bold uppercase ${isFullyLegal ? 'text-white' : 'text-dark'}`}>
+                      {isFullyLegal ? '✓ DECK LEGAL' : '⚠️ INCOMPLETE'}
+                    </Badge>
+                  </div>
 
-              {validationResults.errors.length > 0 && (
-                <div className="mt-2 p-1 bg-danger-subtle text-danger rounded border border-danger-subtle text-xs" style={{ maxHeight: '100px', overflowY: 'auto' }}>
-                  {validationResults.errors.map((err, i) => (
-                    <div key={i}>• {err}</div>
-                  ))}
+                  <Card className={`card-glass p-3 border-secondary-subtle text-xs ${isFullyLegal ? 'border-success-subtle shadow-sm' : ''}`}>
+                    <div className="d-flex flex-column gap-2">
+                      {/* Legend Check */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-secondary-glow">👑 Champion Legend</span>
+                        <Badge bg={validationResults.legend.ok ? "dark" : "danger-subtle"} className={validationResults.legend.ok ? "border border-gold text-gold" : "text-danger border border-danger-subtle"}>
+                          {validationResults.legend.ok ? `✓ ${selectedLegend.name}` : '✗ Required'}
+                        </Badge>
+                      </div>
+
+                      {/* Main Deck Check */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-secondary-glow">⚔️ Main Deck (40 Cards)</span>
+                        <Badge bg={validationResults.mainSize.ok ? "success" : "dark"} className={validationResults.mainSize.ok ? "text-white" : "border border-secondary text-muted"}>
+                          {mainDeckTotal}/40 {validationResults.mainSize.ok ? '✓' : ''}
+                        </Badge>
+                      </div>
+
+                      {/* Rune Deck Check */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-secondary-glow">💎 Rune Deck (12 Runes)</span>
+                        <Badge bg={validationResults.runeSize.ok ? "success" : "dark"} className={validationResults.runeSize.ok ? "text-white" : "border border-secondary text-muted"}>
+                          {runeDeckTotal}/12 {validationResults.runeSize.ok ? '✓' : ''}
+                        </Badge>
+                      </div>
+
+                      {/* Battlefield Check */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-secondary-glow">🏔️ Battlefields (3 Cards)</span>
+                        <Badge bg={validationResults.battlefieldSize.ok ? "success" : "dark"} className={validationResults.battlefieldSize.ok ? "text-white" : "border border-secondary text-muted"}>
+                          {selectedBattlefields.length}/3 {validationResults.battlefieldSize.ok ? '✓' : ''}
+                        </Badge>
+                      </div>
+
+                      {/* Domain Check */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-secondary-glow">🎨 Domain Color Legal</span>
+                        <Badge bg={validationResults.domainLegal.ok ? "success" : "danger"} className="text-white">
+                          {validationResults.domainLegal.ok ? '✓ Legal' : '✗ Domain Violations'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Missing Requirements List */}
+                    {!isFullyLegal && (
+                      <div className="mt-3 pt-2 border-top border-secondary-subtle">
+                        <span className="text-xxs font-bold text-gold uppercase d-block mb-1">Requirements Pending:</span>
+                        <ul className="list-unstyled m-0 text-xxs text-secondary-glow d-flex flex-column gap-1">
+                          {validationResults.errors.map((err, i) => (
+                            <li key={i} className="d-flex align-items-start gap-1">
+                              <span className="text-warning">•</span>
+                              <span>{err}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </Card>
                 </div>
-              )}
-            </Card>
+              );
+            })()}
 
             {/* RIOT PROFILE SYNC FOR MASTERIES */}
             <div className="slot-header">🔗 Riot Profile Sync</div>
