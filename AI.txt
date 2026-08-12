@@ -45,7 +45,7 @@ USER CONTRIBUTIONS
    * Identified low-contrast/faint text elements in dark mode panels and requested visibility improvements.
 
 7. Session & Access Controls:
-   * Requested credentials-based secure login and a guest login bypass route.
+   * Requested credentials-based secure login, user signup capabilities, and a guest login bypass route.
 
 
 ------------------------------------------------------------------------
@@ -86,6 +86,7 @@ AI CONTRIBUTIONS
    * Overrode global `.text-muted` contrast variables to ensure legibility across the dark theme canvas.
 
 7. Authentication & Session Management:
-   * Created a dedicated Login view with credentials checking and guest sign-in support.
+   * Created a dedicated Login/Signup view supporting toggleable registration, username availability validation, and confirm password guards.
+   * Stored registered credentials in a local user database within `localStorage` for complete client-side validation.
    * Wrapped routing content in an auth guard with persistent local sessions and nav bar user badges.
    * Added secure exit controls (Logout) to clear sessions on demand.
