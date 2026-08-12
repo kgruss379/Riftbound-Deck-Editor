@@ -690,3 +690,34 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .slot-header, .card-title, .hero-title {
   text-decoration: underline;
 }
 
+/* Background Utility Classes & Modal Input Overrides */
+.bg-darker {
+  background-color: #050608 !important;
+  color: #ffffff !important;
+}
+
+.modal-content .form-control,
+.modal-content .form-select,
+.form-control.bg-darker,
+.form-select.bg-darker {
+  background-color: #090d16 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 193, 7, 0.4) !important;
+}
+
+.modal-content .form-control:focus,
+.modal-content .form-select:focus,
+.form-control.bg-darker:focus,
+.form-select.bg-darker:focus {
+  background-color: #0f1522 !important;
+  color: #ffffff !important;
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.4) !important;
+}
+
+.modal-content .form-control::placeholder,
+.form-control.bg-darker::placeholder {
+  color: #8c96a3 !important;
+  opacity: 0.8;
+}
+
